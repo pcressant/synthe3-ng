@@ -1,0 +1,117 @@
+{
+  "date": "2026-10-25",
+  "provenance": "Transcription des mesures réalisées pendant la réécriture ; pas de nouvelle exécution ni de données reconstruites.",
+  "environment": {
+    "architecture": "x86_64",
+    "cpu": "AMD Ryzen 9 9955HX 16-Core Processor",
+    "kernel": "Linux 6.18.57",
+    "os": "NixOS 26.05.20261021.da6dc0e",
+    "compiler": "GCC 15.3.0",
+    "speech_dispatcher": "0.12.1",
+    "optimization": "-O2; -ffp-contract=off; signed char pour le portage C"
+  },
+  "cpu_benchmarks": [
+    {
+      "id": "legacy-to-first-c",
+      "iterations": 10,
+      "repeats": 1,
+      "text": "Bonjour, ceci est une phrase de comparaison. Les oiseaux chantent dans les arbres.",
+      "initialization_included": true,
+      "audio_playback": false,
+      "decode_pcm_in_driver": true,
+      "last_pcm_samples_per_message": 118203,
+      "sample_rate_hz": 22050,
+      "cpu_scope": "RUSAGE_CHILDREN user+system après arrêt du module ; descendants attendus inclus, pilote exclu",
+      "runs": [
+        {
+          "version": "ng C++/Python avant réécriture",
+          "cpu_seconds": 5.7162,
+          "wall_seconds": 5.8678
+        },
+        {
+          "version": "premier portage C",
+          "cpu_seconds": 0.0558,
+          "wall_seconds": 0.196
+        }
+      ]
+    },
+    {
+      "id": "first-c-to-interruptible-c",
+      "iterations": 200,
+      "repeats": 1,
+      "text": "Bonjour, ceci est une phrase de comparaison. Les oiseaux chantent dans les arbres.",
+      "initialization_included": true,
+      "audio_playback": false,
+      "decode_pcm_in_driver": false,
+      "cpu_scope": "RUSAGE_CHILDREN user+system après arrêt du module ; pilote exclu",
+      "runs": [
+        {
+          "version": "premier portage C",
+          "cpu_seconds": 1.0447,
+          "wall_seconds": 1.279
+        },
+        {
+          "version": "C avec interruptions renforcées",
+          "cpu_seconds": 0.92,
+          "wall_seconds": 1.137
+        }
+      ]
+    }
+  ],
+  "interruption_benchmarks": [
+    {
+      "path": "protocole direct du module",
+      "cycles": 60,
+      "maximum_stop_ms": 2.0,
+      "resolution_ms": 0.1,
+      "notes": "Délai envoi STOP → réception 703 STOP ; inclut le pilote Python, les pipes et l’ordonnancement."
+    },
+    {
+      "path": "serveur Speech Dispatcher isolé, première série",
+      "cycles": 30,
+      "maximum_cancel_ms": 9.6,
+      "maximum_restart_begin_ms": 0.6
+    },
+    {
+      "path": "serveur Speech Dispatcher isolé, série avec priorités et pause/reprise",
+      "cycles": 30,
+      "maximum_cancel_ms": 10.6,
+      "maximum_restart_begin_ms": 0.4,
+      "priority_preemptions": 5,
+      "maximum_priority_restart_begin_ms": 6.8,
+      "successful_pause_resume_cycles": 3,
+      "volume": -100,
+      "notes": "Notifications de libspeechd ; aucun microphone ni mesure de la sortie physique."
+    }
+  ],
+  "verification": {
+    "unittest_methods_passed": 20,
+    "pcm_reference_cases_passed": 40,
+    "fuzz_inputs": 3000,
+    "fuzz_sanitizers": [
+      "AddressSanitizer",
+      "UndefinedBehaviorSanitizer",
+      "float-cast-overflow"
+    ],
+    "dsp_cancellation_at_each_checkpoint": true,
+    "module_interruptions_under_sanitizers": true,
+    "strace_no_children_threads_or_writable_files": true,
+    "idle_observation_seconds": 0.25,
+    "idle_test_tolerance_cpu_ticks": 1,
+    "idle_test_tolerance_context_switches": 2,
+    "nix_ng_build_passed": true,
+    "nixos_activation_performed": false,
+    "full_orca_session_tested": false
+  },
+  "listening_test": {
+    "engine": "C via Speech Dispatcher isolé",
+    "pcm_duration_seconds": 28.663,
+    "user_feedback": "ça marche très très bien"
+  },
+  "limitations": [
+    "Une seule série enregistrée par comparaison CPU, sans distribution ni intervalle de confiance.",
+    "Ces valeurs ne mesurent ni les watts, ni les joules, ni la latence acoustique.",
+    "Pas de maximum universel de latence ; les résultats dépendent de la machine et de sa charge.",
+    "Le script tools/benchmark_ng.py a été ajouté après ces mesures pour leur reproduction future."
+  ]
+}

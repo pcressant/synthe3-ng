@@ -1,0 +1,3 @@
+Historical Michel voice resources, from acceslibreinfo/synthe3
+revision 8e601dc1895d71c0150c39ee1d10f2e04a291fe8.
+The C engine is in ../src/engine.c. See ../UPSTREAM.md for provenance.

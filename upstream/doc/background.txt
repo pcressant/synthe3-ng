@@ -1,0 +1,1491 @@
+Les ressources du logiciel Synthé 3
+
+Synthé 3 utilise deux ressources : le fichier des segments de parole
+ Michel.seg et le fichier des tables Synthe.tab. Afin de faciliter
+ les développements ultérieurs de Synthé 3, ce document décrit
+ son principe général, la structure du fichier de parole Michel.
+seg, la structure du fichier tables synthe.txt, et l'utilitaire CompiTab
+ qui fabrique le fichier binaire Synthe.tab à partir de synthe.txt.
+
+
+Avec ces informations, il devrait être possible de modifier la voix,
+ d'en créer une nouvelle, voire de modifier partiellement le principe
+ de Synthé 3. Néanmoins, il faut savoir que Synthé 3 a été optimisé
+ au maximum avec la voix actuelle et que le prélèvement d'une autre
+ voix ne garantirait pas un meilleur résultat, le principe même
+ de Synthé 3 ne pouvant aboutir à une voix naturelle.
+
+1. Principe de Synthé 3
+
+Pour décrire le principe de Synthé 3, il est nécessaire de le replacer
+ dans l'historique des synthèses vocales conçues en totalité ou
+ en partie par Michel Morel, leurs principes dépendant grandement
+ de l'évolution des technologies et des connaissances : Synthé
+ 1 conçu en 1979, Synthé 2 en 1983, Synthé 3 en 1985 et enfin Kali
+ entre 1996 et 1999 (toujours en évolution). La description de Synthé
+ 1 est à lire avec soin car Synthé 3 résulte de son évolution
+ en reprenant plusieurs de ses principes.
+
+1.1. Synthé 1 et 2 : synthèse avec une période par phonème
+
+A l'époque de Synthé 1, il existait un seul processeur à faible
+ consommation (CMOS), le CDP1802, et les mémoires mortes, coûteuses
+ (400 F pièce en 1979), avaient une capacité de 2 ko. Les seules
+ synthèses vocales existantes tournaient sur de gros ordinateurs.
+ Pour réaliser un synthétiseur portatif d'environ 1 kg et d'un
+ coût raisonnable (15 circuits intégrés dont 6 ko de mémoire
+ morte), le choix d'une méthode par phonème a été fait, alors
+ que les publications de l'époque montraient déjà que les transitions
+ entre phonèmes sont indispensables pour un minimum de qualité et
+ d'intelligibilité. A défaut, la transition fait entendre le mélange
+ de deux sons différents (diaphonie) au lieu d'un son qui se transforme
+ progressivement en un autre. Mais avec la technologie disponible,
+ ce choix s'imposait.
+
+La partie centrale des phonèmes étant presque périodique pour les
+ voyelles et certaines consonnes, chaque phonème est représenté
+ par un segment formé d'une seule période, ce qui réduit considérablement
+ la taille du stockage. Les consonnes fricatives et plosives, non
+ périodiques, sont représentées par trois périodes consécutives.
+ Un jeu de courbes d'amplitude permet d'assembler les différentes
+ périodes, avec pour chaque phonème, des amplitudes de plus en plus
+ grandes jusqu'au milieu du phonème, puis de plus en plus petites,
+ avec une balise indiquant le départ du phonème suivant (avant la
+ fin du phonème en cours, donc superposé en fondu enchainé) et
+ une balise indiquant la fin du phonème. Ces courbes d'amplitude
+ ont des formes différentes selon les catégories des phonèmes voisins
+ (fricatives voisées ou non, plosives voisées ou non, nasales, liquides,
+ voyelles, silence).
+
+Les segments de parole sont entrés manuellement à partir d'enregistrements
+ restitués à vitesse réduite sur papier. L'étude des tracés permet
+ d'élaborer les principes de base, de sélectionner la meilleure
+ période de chaque phonème et de construire les tableaux d'amplitude.
+ Aucune rétroaction n'est prévue : tout est basé sur l'étude
+ des tracés, la part d'intuition étant considérable. Le résultat
+ est cependant intéressant : 70 à 95 % d'intelligibilité, malgré
+ une voix caverneuse et horriblement artificielle. Le premier des
+ Synthé est né.
+
+Un article dans la revue Micro-Systèmes n° 16 (mars 1981), récompensé
+ par le prix des lecteurs, décrit Synthé et propose de le réaliser
+ entièrement, la société Electrel (Caen) fournissant les composants.
+ Le Synthé 2 n'est que la réalisation industrielle de Synthé 1,
+ après retouches du circuit imprimé et du programme, le principe
+ restant le même. Synthé est alors le seul appareil de synthèse
+ vocale léger et peu coûteux. De son côté, le CNET éprouve quelques
+ difficultés à créer un synthétiseur de taille raisonnable conservant
+ les qualités des synthétiseurs de laboratoire.
+
+1.2. Synthé 3 : synthèse avec une période par phonème et une
+ par diphone
+
+En 1984, les progrès des circuits intégrés permettent d'envisager
+ un système à base d'un Z80 CMOS avec 64 ko de mémoire, ce qui
+ permettra d'ajouter des périodes, notamment les transitions entre
+ phonèmes. Cette fois, un ordinateur est utilisé pour le développement :
+ le Zénith Z100, concurrent du PC sorti en même temps. Une carte
+-son est créée pour l'occasion, avec une partie enregistrement et
+ une partie restitution. Il est possible d'enregistrer des petites
+ phrases de 3 secondes, d'afficher et de prélever des périodes, et
+ de les utiliser pour fabriquer de nouvelles phrases. L'ordinateur
+ permet alors une rétroaction : le choix de telle règle ou de telle
+ période est jugé perceptivement par comparaison à d'autres choix.
+
+
+Grâce à ce programme de développement, des essais peuvent être
+ effectués sur des enregistrements naturels : tout d'abord la fréquence
+ d'échantillonnage est fixée à 10 kHz, ce qui est un peu faible
+ (limitant la fréquence maximale à 5 kHz) mais acceptable et économique.
+ Autre type d'essai : sur les énoncés, on ne conserve qu'une période
+ ici ou là et on fabrique les autres par interpolation. L'utilisation
+ d'une période par phonème permet alors de simuler le Synthé 1
+ sur des énoncés réels, puis d'essayer diverses façons d'ajouter
+ des périodes. L'ajout d'une période dans la transition entre phonèmes
+ améliore considérablement le résultat : la distance spectrale
+ entre les périodes à combiner étant réduite, l'oreille reconstitue
+ à peu près la transition complète. Les mémoires de l'époque
+ ne permettant pas encore de stocker la transition (ou diphone) entièrement,
+ le choix est fait d'une période par phonème + une par diphone.
+
+Le jeu de phonèmes reste le même que celui de Synthé 1 :
+
+- 10 voyelles : ou, o, u, i, a, an, on, eu, é, in
+
+- 16 consonnes : f, s, ch (fricatives sourdes), v, z, j (fricatives
+ voisées), p, t, k (plosives sourdes), b, d, g (plosives voisées),
+ m, n (nasales), l, r (liquides).
+
+La distinction entre les versions ouvertes et fermées de o, eu, é
+ n'est pas faite, une version moyenne est utilisée. Les consonnes
+ glissantes (comme dans "oui", "lui", "pied") sont fabriquées à
+ partir des voyelles ou, u, i, avec des durées plus courtes, ce qui
+ donne un bon résultat.
+
+Un tableau de 27 x 27 est fabriqué (26 phonèmes + silence), dans
+ lequel seront placées les adresses des diphones. La mémoire disponible
+ (20 ko pour la voix) ne permet pas de stocker les 27 x 27 = 729 périodes
+ de diphones, de 80 échantillons en moyenne. Seuls 256 peuvent être
+ stockées. Grâce aux ressemblances entre certains phonèmes de même
+ position de production (f, v, p, b, m, ou encore s, z, t, d, n, par
+ exemple), certains segments peuvent être utilisés dans plusieurs
+ diphones différents. Chaque diphone est testé avec plusieurs segments
+ possibles, les résultats étant comparés perceptivement. Cette
+ méthode serait bien sûr inutile pour une nouvelle voix dans la
+ version logicielle.
+
+Lorsque la fabrication de la voix arrive à son terme, des petites
+ phrases contenant de nombreuses combinaisons possibles de phonèmes
+ sont produites afin de procéder aux dernières retouches. L'intelligibilité
+ avoisine les 100 % en première écoute, la voix est plus humaine
+ (pour l'époque), plus ronde, plus agréable que celle de Synthé
+ 1. Le Synthé 3 est produit entre 1986 et 2002 sous forme d'appareils
+ à clavier ou de cartes internes par Electrel, puis entre 2002 et
+ 2008 sous forme d'appareils à clavier par Aria (Michel MOREL), soit
+ une carrière totale de 23 ans dans ses versions commerciales.
+
+1.3. La transcription phonétique dans Synthé 3
+
+Lorsque la société Electrel, après avoir produit les premiers Synthé
+ 3 à clavier pour le déficit de la parole, est sollicitée pour
+ fabriquer des cartes internes Synthé 3 capables de lire du texte,
+ notamment pour la lecture d'écran (poste de travail adapté au déficit
+ visuel), la question se pose de la transcription des textes alphabétiques
+ en textes phonétiques. Début 1986, un module de transcription phonétique
+ est ajouté à Synthé 3 pour la version carte.
+
+Le principe repose sur une arborescence codée symboliquement en langage
+ machine. Tout d'abord, le code de chaque nouvelle lettre du texte
+ permet de fabriquer un pointeur vers le cas général de la lettre,
+ avec deux possibilités : première lettre du mot ou position quelconque.
+ Le tableau de pointeurs contient les étiquettes correspondant aux
+ différentes lettres, par exemple :
+
+TabGen:
+
+	Xa, Xb, Xc, …
+
+où le début des adresses en 'X' indique le cas général de la lettre
+ considérée. Ensuite, on va voir dans l'arbre à l'adresse de la
+ lettre et on passe à la lettre suivante du texte. Dans Xa par exemple,
+ on trouve les lettres qui peuvent agir sur la phonétisation du 'a',
+ par exemple :
+
+Xa:
+
+	'I', Xai
+
+	'M', Xan
+
+signifie que si on rencontre 'I' ou 'N' après 'A', on va respectivement
+ en Xai ou Xan (beaucoup d'autres cas sont ignorés ici par souci
+ de clarté). On passe à nouveau à la lettre suivante du texte pour
+ le test de la prochaine branche. Dans Xan, on a par exemple :
+
+Xan:
+
+	VOY, AA, Xn
+
+	TTT, AN, Gen
+
+qui signifie : si on rencontre une voyelle derrière "an", 	alors
+ le phonème 'A' et le phonème 'N' sont établis. On indique donc
+ 'AA' (constante = code du phonème 'A') et branchement sur Xn (cas
+ général du 'n') qui fournira toujours le phonème 'N' avant de
+ regarder la suite. La ligne suivante dit que dans tous les cas ('TTT'),
+ hormis ceux déjà traités, on écrit le phonème 'AN' et on va
+ dans le cas général (donc dans le tableau TabGen pour la lettre
+ testée. Là encore, le raisonnement a été simplifié par souci
+ de clarté. Dans le cas d'un test collectif (ici VOY ou TTT dans
+ le dernier exemple), on ne passe pas à la lettre suivante du texte
+ puisque la lettre en cours n'a été testée que partiellement (seulement
+ sa catégorie par exemple).
+
+Comme on le voit, le premier caractère testé dans chaque branche
+ d'une arborescence est une lettre, une catégorie de lettres ou le
+ reste des cas (ou le mode de lecture, voir plus loin). Derrière,
+ on indique les phonèmes à écrire (de zéro à plusieurs phonèmes),
+ puis la branche suivante. On peut aussi faire aller le programme
+ vers un dictionnaire de morceaux de mots si on doit tester une suite
+ de lettres sans branchements intermédiaires. Par exemple, sur le
+ cas général du 'i', si on rencontre 'c', on teste plusieurs morceaux
+ de mots, dont :
+
+Xiceps: 'EPS',0,SS,EE,PP, Xs2
+
+qui signifie : si on rencontre la séquence "eps", soit "iceps" depuis
+ le cas général, on enregistre les phonèmes 'SS' (code du phonème
+ 'S'), 'EE' (code du phonème 'é' ou 'è') et 'PP' (code du phonème
+ 'P'), et on va à l'adresse Xs2, cas général d'un 'S' toujours
+ prononcé.
+
+Chaque entrée de ce dictionnaire permet de traiter plusieurs mots
+ qui contiennent une même chaîne de caractères, par exemple ici,
+ "biceps", "triceps", quadriceps", etc. Plusieurs centaines de formes
+ (613 à ce jour) sont ainsi traitées. N'étant plus limités à
+ des adresses de 16 bits, on pourrait ajouter d'autres formes ainsi
+ qu'un véritable dictionnaire de mots, qui serait testé dès la
+ première lettre de chaque mot.
+
+Le principe d'implémentation d'un arbre en langage machine, performant
+ en 1986 car très économe en mémoire et en temps machine, reste
+ lourd en temps de développement. Avec les moyens actuels, on s'y
+ prendrait différemment, comme dans Kali. Mais l'arbre actuel étant
+ fonctionnel et relativement complet, l'ajout d'un dictionnaire de
+ mots semble l'amélioration la plus souhaitable et la plus facile
+ à mettre en œuvre, notamment pour la prononciation des noms propres
+ et des mots d'emprunt.
+
+1.4. Kali : synthèse par diphones
+
+Une petite description de Kali, successeur de Synthé 3, est nécessaire
+ pour situer la technologie de Synthé 3 et éviter de réinventer
+ ce qui existe déjà. Une description détaillée de Kali est fournie
+ sur le site du CRISCO :
+
+http://www.crisco.unicaen.fr/Description-des-differentes.html en bas
+ de la page.
+
+Des évolutions importantes ont été apportées pour passer de Synthé
+ 3 à Kali, dont les principales sont :
+
+Voix : Kali utilise pour la voix des diphones complets. Les diphones
+ d'un énoncé quelconque étant nécessairement prélevés dans des
+ contextes différents, chaque diphone doit être normalisé en hauteur,
+ intensité, durée, timbre, de façon à ce que ses extrémités
+ puissent se raccorder dans toutes les combinaisons possibles. Le
+ résultat est une voix plus agréable, plus naturelle et plus intelligible,
+ mais les traitements représentent un gros travail.
+
+Transcription phonétique : elle utilise des règles écrites en
+ texte selon une structure hiérarchisée (arborescente), pratique
+ pour la maintenance, ainsi qu'un dictionnaire de milliers de mots.
+
+
+Prosodie : absente de Synthé 3, la prosodie permet de rendre la
+ voix plus naturelle et de repérer acoustiquement les frontières
+ entre groupes de mots fortement liés entre eux, les liens entre
+ ces groupes de mots, leur importance relative dans la phrase. Elle
+ se base sur l'analyse syntaxique et pragmatique du texte à lire.
+ Cette analyse met en œuvre des règles et des traitements informatiques
+ complexes. La prosodie proprement dite utilise plusieurs centaines
+ de contours naturels des groupes de mots, accessibles selon la répartition
+ des syllabes vides ou pleines, la position du groupe dans la phrase,
+ la ponctuation.
+
+2. Structure du fichier de voix Michel.seg
+
+Le fichier est binaire. Il comporte dans l'ordre les données suivantes :
+
+
+short	nbSeg nombre de segments de la voix
+
+short	nbEch nombre d'échantillons de la voix
+
+short[nbSeg]	tAdr table des adresses des segments sous forme d'index
+ (et non de pointeurs), le premier commençant à zéro.
+
+char[nbEch]	tEch échantillons 8 bits des segments, tous bout à bout
+
+
+La correspondance entre les noms des phonèmes et les numéros de
+ segments se fait dans le fichier des tables (chapitre 3).
+
+La connaissance de cette structure permet de générer un fichier
+ conforme à celle-ci si on souhaite développer d'autres voix.
+
+3. Structure du fichier tables synthe.txt
+
+Ce fichier contient toutes les données autres que la voix, nécessaires
+ à la synthèse. Il provient des sources de Synthé 3 en langage
+ assembleur Z80, ce qui explique son format. Certaines données utilisées
+ par le programme d'origine ne le sont pas ici. Les symboles peuvent
+ se voir attribuer des valeurs (si suivis du signe '='), sinon, ils
+ ont la valeur de leur adresse (chaque valeur ayant une taille donnée
+ en octets, on peut en déduire les adresses). La casse n'est pas
+ toujours harmonisée (même si elle a été en partie corrigée pour
+ la lisibilité), ce qui est sans effet sur le programme, celui-ci
+ effectuant une conversion pour rester insensible à la casse de ces
+ ressources. Le point-virgule débute un commentaire. Les différents
+ champs sont expliqués ci-dessous par ordre d'apparition.
+
+3.1. Constantes
+
+Ce sont des symboles auxquels une valeur est attribuée à l'aide
+ du signe '='.
+
+3.2. Phonèmes et marqueurs phonétiques
+
+Les phonèmes sont codés de 0 à 27, le dernier étant le silence
+ (pour les transitions entre parole et silence ou l'inverse). Il y
+ a donc 28 phonèmes, un de plus que ce qui a été dit plus haut
+ dans le principe. de Synthé 3. En effet, le code 10 (YY) a été
+ ajouté dans le programme pour son rôle en tant que consonne, mais
+ les périodes de diphones qui le concernent correspondent à celles
+ du II, même si son enveloppe (liste des amplitudes en fonction du
+ temps) est différente.
+
+Le code 28 est l'allongement de voyelle (pour les accents circonflexes,
+ certaines nasales, les féminins, pluriels et fins de mots en 'r').
+ Le code 254 (NULP) représente l'absence de phonème dans certains
+ tableaux de correspondance.
+
+3.3. Terminateurs pour arbre
+
+Ces trois codes sont les terminateurs possibles des chaînes phonétiques
+ dans l'arbre de transcription et le dictionnaire de morceaux de mots
+ (voir 1.3).
+
+- Le code PG (= programme) indique que le symbole qui suit est une
+ adresse dans le programme pour retourner au cas général. En C++, il
+ n'est bien sûr pas question d'aller dans le programme, ce terminateur
+ indique juste que l'adresse est celle d'un tableau général (première
+ lettre ou position quelconque).
+
+- Le code RB (= arbre) indique que le symbole qui suit est l'adresse
+ d'un nœud de l'arbre.
+
+- Le code DC (= dico) indique que le symbole qui suit est une adresse
+ dans le dictionnaire de morceaux de mots.
+
+3.4. Modes de lecture et catégories alphabétiques
+
+Comme on l'a vu, dans chaque branche de l'arbre de transcription, le
+ premier caractère rencontré est le code de la lettre à tester
+ ou un code collectif (catégorie, mode de lecture ou reste des cas).
+ Les codes collectifs sont les suivants :
+
+- Le code BVRD (= bavard) est le mode de lecture dans lequel la ponctuation
+ est prononcée (virgule, point, etc.) En pratique, ce test est utilisé
+ dans les branches qui traitent les codes de ponctuation. Si la condition
+ est vraie, la chaîne phonétique du caractère de ponctuation en
+ mode verbeux suit. Sinon, on passe au test suivant.
+
+- Le code NABR (= non abréviation) est un mode de lecture dans lequel
+ les abréviations ne sont pas développées comme telles. Ce mode
+ n'est guère utilisé.
+
+- Le code VOYM (=voyelle e, i ou y) correspond aux voyelles devant
+ lesquelles le g se prononce comme un j et le c comme un s.
+
+- Le code VOY correspond à toute voyelle.
+
+- Le code LET correspond à toute lettre (donc à toute consonne
+ si le test VOY précède).
+
+- Le code PONC correspond aux signes de ponctuation ou aux lettres
+ (donc aux signes de ponctuation seulement si le test LET précède).
+
+
+- Le code SYMB équivaut au code PONC en incluant aussi les symboles
+ ($, %, #, @, etc.), donc aux symboles seulement si le test PONC précède,
+ ou aux symboles et ponctuations si c'est le test LET qui précède.
+
+
+- Le code CHIF correspond à tous les codes en incluant les chiffres
+ (donc aux chiffres seulement si le test SYMB précède).
+
+- Le code TTT correspond à tous les cas non encore testés. Il équivaut
+ à CHIF et son code est le même, mais pour des raisons de lisibilité,
+ on utilise CHIF uniquement traiter les chiffres, et TTT dans tous
+ les autres cas (donc à la fin de chaque branche).
+
+3.5. Catégories phonétiques
+
+- Le code VOYP correspond aux voyelles phonétiques.
+
+- Le code GLIP correspond aux consonnes phonétiques glissantes. Une
+ glissante est une consonne formée à partir d'une voyelle que le
+ locuteur fait glisser vers la voyelle suivante à la manière d'une
+ consonne (par exemple le ou de oui, le i de mien et le u de lui).
+
+- Le code CNSP correspond aux consonnes phonétiques.
+
+Ces codes sont utilisés uniquement dans les tableaux de catégories
+ phonétiques pour être exploités par le programme (par exemple
+ pour la liaison et l'élision).
+
+3.6. Caractères alpha code commun
+
+Avant le passage en phonétique, le texte alphabétique est normalisé
+ de façon à simplifier les traitements : tous les codes des caractères
+ sont sur un seul octet non signé et se suivent. La base étant les
+ chiffres (48 à 57), en dessous, on descend jusqu'à l'espace (32),
+ et au dessus, on va jusqu'à 96 (apostrophe renversée), puis on
+ saute les minuscules (qui renvoient sur les majuscules par programme),
+ et on fait suivre à la place les autres caractères, nommés explicitement
+ par un symbole, leurs codes étant différents selon le système
+ de codage utilisé. Le code latin1 est indiqué en commentaire et
+ le symbole correspondant est affiché.
+
+Le symbole NulA est utilisé dans les tableaux de correspondance quand
+ aucun caractère ne correspond au code origine. Le symbole APOST
+ est celui de l'apostrophe, celle-ci étant utilisée dans la syntaxe
+ de la source. L'apostrophe renversée est notée APOSG, puis les
+ autres symboles sont illustrés par leur code en latin-1 et leur
+ affichage. Quand ils se suivent, aucune valeur ne suit le signe '=', c'
+est l'assembleur qui incrémente automatiquement la valeur.
+
+3.7. Début du flux de données
+
+Après la liste des constantes, on reprend à l'adresse 0 (commentaire
+ "Début") puis les données symboliques se suivent en occupant une
+ taille dépendant de leur format : le symbole DB signifie data byte,
+ soit 1 octet. Le symbole DW signifie data word, soit 2 octets. Aucun
+ autre format n'est utilisé ici. Un symbole en début de ligne, suivi
+ de ':' prend pour valeur l'adresse correspondante. Tous les symboles
+ des tableaux sont définis, soit par le signe '=' (constantes), soit
+ par ':' (adresses).
+
+3.8. Adresses des tables
+
+Comme les données occupent moins de 64 ko, les adresses sont codées
+ sur 2 octets (DW). Cette liste d'adresses est utilisée pour fabriquer
+ la structure des tables. Le symbole "FOIS" est lui aussi intégré
+ à cette structure car destiné au programme.
+
+3.9. Copyright
+
+Le copyright rend hommage à la société Electrel qui a commercialisé
+ les Synthé de 1981 à 2002. Celle-ci a fermé en 2002 et Michel
+ MOREL est resté seul propriétaire des sources.
+
+3.10. Table des codes 850
+
+Il s'agit des anciens codes du DOS pour la France. Utilisés par les
+ cartes PC, ils sont laissés ici pour mémoire mais en commentaires.
+
+
+3.11. Table des codes Windows
+
+Il s'agit en fait des codes latin1, utilisés par le programme. Les
+ caractères 123 à 255 sont convertis en code commun grâce à cette
+ table. Lorsque le texte est transmis en UTF-8, il est d'abord converti
+ en latin1 par un premier module avant d'attaquer les autres modules.
+ Il n'y a donc pas de tables UTF-8 dans ce fichier.
+
+3.12. Code commun -> catégorie
+
+Cette table permet de répartir les caractères par catégories alphabétiques
+ (voir 3.4). On part cette fois du code commun, ce qui permet d'obtenir
+ la catégorie directement dans un même tableau.
+
+3.13. Code commun -> code phonétique
+
+On peut paramétrer Synthé en mode phonétique. Dans ce cas, le texte
+ est directement interprété comme étant phonétique. La plupart
+ des phonèmes sont représentés en entrée par les lettres qui leur
+ correspondent. Les autres sont représentés par des lettres accentuées.
+ Les codes sont les suivants :
+
+a = a
+
+b = b
+
+d = d
+
+e = e ou eu (le, heureux)
+
+f = f
+
+g = g (gala)
+
+h = ch (chat)
+
+i = i
+
+j = j (joli, gite)
+
+k = k
+
+l = l
+
+m = m
+
+n = n
+
+o = o
+
+p = p
+
+r = r
+
+s = s (son)
+
+t = t
+
+u = u
+
+v = v
+
+w = w (oui, kiwi)
+
+y = y (viens, yak)
+
+z = z
+
+â = an (ange, jean, vent)
+
+é = é ou è ou ê (élève, être)
+
+î = in ou ain ou un (pin, main, un)
+
+ô = on
+
+ù = ou
+
+µ = glissante u (lui)
+
+: = allongement voyelle
+
+, = silence
+
+Le tableau tPhon1 traite les 26 lettres non accentuées. Certaines
+ (comme x) ne représentent aucun phonème (NULP). Le tableau tPhon2
+ traite la zone des voyelles accentuées. Les caractères ',' ':' 'µ',
+ non contigus à ces tableaux, sont traités individuellement par
+ le programme.
+
+3.14. Code commun -> catégorie phonétique
+
+Toujours pour le mode phonétique, les tableaux TCatP1 et TCatP2 correspondent
+ respectivement aux tableaux TPhon1 et TPhon2. Le code indiqué est
+ celui de la catégorie phonétique (voyelle, consonne, glissante).
+ Ces deux tableaux ne sont pas utilisés par le programme.
+
+3.15. Messages phonétiques pour la prononciation des nombres
+
+La prononciation des nombres est effectuée par le programme sans
+ passer par les règles de prononciation des mots, car elles ne seraient
+ pas adaptées. Le programme utilise des morceaux du nombre à prononcer,
+ notamment les dix chiffres, mais aussi les formes comme "onze", "douze
+", "treize", "quatorze", etc., "vingt", "trente", etc., "cent", "mille
+", "million", "milliard".
+
+Tous ces morceaux de nombres sont étiquetés par leur nom (Ch1, Ch2,
+ Ch3, Ch100, etc.) utilisé par le programme. Le code 80 marque la
+ fin de la chaine phonétique. Le code suivant, s'il est différent
+ de 0, indique le phonème de liaison lorsque le mot suivant commence
+ par une voyelle.
+
+Derrière cette liste de chaines phonétiques, trois adresses permettent
+ de pointer, soit vers les unités, soit vers les dizaines, soit vers
+ "mille", "million", "milliard".
+
+3.16. Tables pour le générateur de parole : table volume
+
+La série de tables qui suit concerne la synthèse proprement dite,
+ c'est-à-dire la génération de la parole à partir du texte phonétique.
+ Toutes ces tables sont décrites de 3.16 à 3.28.
+
+La table TabVol contient les 16 valeurs de volume, par pas correspondant
+ à un rapport de 1,26, équivalant à 2 tons. La valeur de base du
+ volume est 1000, correspondant au volume 10 (11e valeur du tableau).
+ Pour le programme, c'est en fait le volume 0 qui vaut 1000, les volumes
+ négatifs correspondant à des valeurs inférieures à 1000 et les
+ volumes positifs correspondant à des valeurs supérieures à 1000.
+
+
+3.17. Table débit
+
+La table TabVit contient les 16 valeurs de débit ou vitesse de phonation,
+ par pas correspondant à un rapport de 1,1225, équivalant à 1 ton.
+ La valeur de base du débit est 1000, correspondant au débit 3 (4e
+ valeur du tableau). Pour le programme, c'est en fait le débit 0
+ qui vaut 1000, les débits négatifs correspondant à des valeurs
+ inférieures à 1000 et les débits positifs correspondant à des
+ valeurs supérieures à 1000.
+
+3.18. Table hauteur
+
+La table TabHau contient les 16 valeurs de hauteur, par pas correspondant
+ à un rapport de 1,05946, équivalant à ½ ton. La valeur de base
+ de la hauteur est 1000, correspondant à la hauteur 6 (7e valeur
+ du tableau). Pour le programme, c'est en fait la hauteur 0 qui vaut
+ 1000, les hauteurs négatives correspondant à des valeurs inférieures
+ à 1000 et les hauteurs positives correspondant à des valeurs supérieures
+ à 1000.
+
+3.19. Catégories de phonèmes
+
+Rien à voir avec les catégories définies en 3.14, correspondant
+ au mode phonétique en entrée. Ici, il s'agit des catégories des
+ phonèmes générés par le programme, et utilisées pour fabriquer
+ les enveloppes des phonèmes, c'est-à-dire la forme de l'amplitude
+ en fonction du temps, indispensable pour organiser la génération
+ de la parole. Aux 28 phonèmes (27 + silence), codés de 0 à 27,
+ correspondent 10 catégories codées de 0 à 9 : voyelle, glissante,
+ fricative sourde, fricative voisée, plosive sourde, plosive voisée,
+ nasale, L, R, silence.
+
+3.20. Amplitudes fin phonèmes
+
+Pour chaque catégorie de phonème, on définit des listes d'amplitudes,
+ d'abord montantes jusqu'au milieu du phonème, puis descendantes.
+ La partie montante interagit avec le phonème précédent, tandis
+ que la partie descendante interagit avec le phonème suivant. C'est
+ pourquoi chaque enveloppe est divisée en deux parties : début
+ phonème et fin phonème, dont les formes respectives dépendent
+ de la catégorie du phonème qui précède ou qui suit.
+
+Le tableau FinAmp(categ1, categ2) est un tableau à deux dimensions :
+ il contient les numéros des courbes d'amplitude de la partie descendante
+ des phonèmes, pour chaque catégorie du phonème considéré (lignes)
+ et pour chaque catégorie du phonème qui suit (colonnes). Ces numéros
+ sont donc les identifiants des différentes courbes d'amplitude.
+
+3.21. Numéros des segments de fin phonèmes
+
+Les segments sont les suites d'échantillons des différents représentants
+ des phonèmes et diphones. Chaque segment a une longueur d'une période.
+ Lors de la sortie sonore, les segments d'un phonème donné sont
+ disposés consécutivement avec comme facteur multiplicatif les courbes
+ d'amplitude (cf. ci-dessus).
+
+Le tableau FinTim(car1) est un tableau à une dimension (bien qu'il
+ ait été réparti sur 3 lignes pour la lisibilité) : il contient
+ les numéros des segments des phonèmes pour la partie descendante
+ de ceux-ci. Les phonèmes sont dans l'ordre de leur code (0 à 27),
+ explicité dans le commentaire derrière. Comme pour les amplitudes,
+ les numéros des segments sont leurs identifiants.
+
+On distingue DebTim et FinTim (début et fin du phonème) car les
+ plosives présentent une discontinuité en leur milieu (avant ou
+ après l'explosion), qui impose cette distinction. Les autres phonèmes
+ sont représentés par les mêmes identifiants dans DebTim et FinTim,
+ seules leurs courbes d'amplitudes diffèrent entre montée et descente.
+
+
+3.22. Amplitudes des transitions
+
+Comme les phonèmes, les diphones sont régis par des courbes d'amplitudes.
+ Le tableau TrAmp(categ1, categ2) est un tableau à deux dimensions :
+ catégorie du phonème précédent en ligne, catégorie du phonème
+ suivant en colonne. Les numéros sont les identifiants des courbes
+ d'amplitude.
+
+3.23. Numéros de segment des transitions
+
+On a vu que le nombre de segments de phonèmes était égal au nombre
+ de phonèmes. De son côté, le nombre de segments de transitions
+ (c'est-à-dire de diphones) est égal au carré de ce nombre. Le
+ tableau TraTim(car1, car2) comporte 28 lignes (phonème précédent
+ 0 à 27) pour 32 colonnes (phonème suivant). Le nombre de 32 pour
+ chaque bloc avait été choisi pour faciliter la programmation en
+ langage machine. Il y a donc 4 cellules non utilisées à la fin
+ de chaque ligne. Elles sont mises à zéro sauf deux d'entre elles
+ qui avaient été utilisées pour cacher un copyright (2 lettres
+ par ligne) maintenant inutile. Là encore, les numéros sont les
+ identifiants des segments à utiliser.
+
+3.24. Amplitudes début phonèmes
+
+Le tableau DebAmp(categ1, categ2) est un tableau à deux dimensions :
+ il contient les numéros des courbes d'amplitude de la partie montante
+ des phonèmes, pour chaque catégorie du phonème qui précède (lignes)
+ et pour chaque catégorie du phonème considéré (colonnes). Voir
+ 3.20 pour plus de détails.
+
+3.25. Numéros des segments de début phonèmes
+
+Le tableau DebTim(car2) est un tableau à une dimension (bien qu'il
+ ait été réparti sur 3 lignes pour la lisibilité) : il contient
+ les numéros des segments des phonèmes pour la partie montante de
+ ceux-ci. Les phonèmes sont dans l'ordre de leur code (0 à 27), explicité
+ dans le commentaire derrière. Voir 3.21 pour plus de détails.
+
+3.26. Table des amplitudes
+
+Les tableaux précédents permettent d'accéder aux amplitudes et
+ aux segments en fournissant leurs identifiants en fonction des phonèmes
+ considérés et de leur entourage. Ce tableau TabAmp est celui des
+ courbes d'amplitude. L'amplitude est exprimée en hexadécimal (instruction
+ #H à destination du compilateur), la valeur étant comprise entre
+ 0 et F (soit 15 en décimal). Le codage hexadécimal a été choisi
+ pour cette table afin de pouvoir gérer plus facilement les bits
+ de contrôle, sur la partie gauche du nombre.
+
+La première courbe commence en 0 du tableau. Les valeurs sont codées
+ sur les 4 bits de faible poids (partie droite du nombre). La partie
+ gauche du nombre est à 0 par défaut. Le bit de poids fort est mis
+ à 1 (valeur 80 en hexadécimal) sur la valeur où doit démarrer
+ la courbe d'amplitude suivante. Ce bit permet d'organiser le message
+ en une suite de courbes d'amplitude. Après la rencontre de ce bit,
+ deux courbes d'amplitude se superposent en s'additionnant. Ensuite,
+ quand la première courbe se termine, le 2e bit de poids fort est
+ mis à 1 derrière la dernière amplitude (valeur 40 en hexadécimal),
+ la 2e courbe restant seule et devenant alors la 1ère. Lorsque deux
+ courbes se suivent sans chevauchement, en suivant cette logique, la
+ valeur qui suit la dernière amplitude est C0, indiquant à la fois
+ le début du phonème suivant et la fin du phonème en cours, comme
+ c'est le cas pour la première courbe du tableau.
+
+Les commentaires indiquent le numéro de courbe et entre parenthèses
+ la longueur avant démarrage de la courbe suivante.
+
+3.27. Adresses des amplitudes
+
+Le code  #D indique au compilateur le retour en mode décimal.
+
+La table AdAmp(n° courbe amplitudes) fait correspondre l'identifiant
+ et l'adresse 16 bits de chaque courbe d'amplitude. Chaque adresse
+ se compose donc d'un octet de poids faible suivi d'un octet de poids
+ fort. Dans le début du tableau, l'adresse correspondant à l'identifiant
+ 0 est donc 0,0, celle correspondant à l'identifiant 1 est 16, 0,
+ etc., la dernière adresse (identifiant 44) étant 113, 1.
+
+3.28. Gestion des segments
+
+Pour les segments, on ne procède pas comme pour les amplitudes. En
+ effet, les segments sont concaténés comme on l'a vu dans le fichier
+ voix Michel.seg, et chargés par le programme dans le tableau tEch
+ (voir 2. Structure du fichier voix). Le tableau d'index des segments
+ est lui aussi contenu dans le fichier voix, et chargé par le programme
+ dans le tableau tAdr. Les numéros de segments donnés dans les tables
+ correspondent aux index du tableau tAdr. Toutes ces correspondances
+ avaient été effectuées manuellement à l'époque de la conception
+ du Synthé 3. La fabrication d'une nouvelle voix avec les outils
+ actuels fournirait directement les numéros de segments des tables
+ DebTim, FinTim et TraTim, décrites ci-dessus.
+
+3.29. Table des adresses pour milieu de mot
+
+Nous revenons ici aux ressources de transcription phonétique, dont
+ la taille dépend du nombre de règles implémentées. Historiquement,
+ cette partie se situe derrière les tables de taille fixe, car elle
+ est restée évolutive tout au long de la carrière du Synthé 3,
+ en fonction des règles de transcription à ajouter. Cette section
+ commence par deux tables de taille fixe, qui renvoient vers les règles
+ arborescentes de taille variable.
+
+La table TabGen (voir 1.3) est utilisée dans le cas général d'une
+ lettre quelconque du mot en cours. Comme on l'a vu, le code commun
+ de la lettre permet d'accéder au pointeur vers le cas général
+ de cette lettre. Ces pointeurs de 16 bits (DW) sont symboliques. Leur
+ nom commence par X, puis la lettre ou le symbole considéré.
+
+3.30. Table des adresses pour début de mot
+
+La table TabDeb est utilisée dans le cas de la première lettre d'
+un mot. En effet, les règles de début de mot peuvent différer quelque
+ peu du cas général. Les pointeurs symboliques commencent par un
+ point, puis la lettre ou le symbole considéré. Lorsque les règles
+ de début de mot ne diffèrent pas du cas général, c'est le pointeur
+ de cas général (commençant par X) qui est utilisé.
+
+3.31. Dictionnaire de morceaux de mots
+
+Une règle arborescente peut pointer vers une entrée de ce dictionnaire.
+ Ceci signifie que le morceau de mot doit être testé (voir 1.3). Par
+ exemple, l'adresse symbolique ".Aber" est testée (plus loin) par
+ la règle de A en début de mot, lorsqu'elle est suivie de B. A l'
+adresse ".Aber:" (la première du dictionnaire de débuts de mots),
+ ayant déjà A et B, on teste E et R, et si oui, on transcrit le
+ début du mot et on va en Xer3, qui traite les fins de mots en "er
+" lorsque les deux lettres sont prononcées (aber, fer, mer, amer,
+ etc.).
+
+On distingue dictionnaire de débuts de mots (commençant par point)
+ et dictionnaire général (milieux de mots, commençant par X) pour
+ pouvoir distinguer par exemple "amer" et "ramer".
+
+Le moteur de Synthé ignore la casse. Les majuscules sont utilisées
+ seulement en début de mot ainsi que pour le X du cas général, pour
+ la lisibilité. Mais les premières règles de 1986 étant entièrement
+ en majuscules, tout n'a pas été corrigé, d'où une certaine variation
+ – sans conséquences – dans la casse.
+
+3.32. Arbre
+
+Il s'agit des règles arborescentes, dont chaque étiquette représente
+ une branche. On trouve tout d'abord les règles de début de mot,
+ dont la première étiquette est .A, puis les règles générales
+ (milieu de mot), dont la première étiquette est Xa2.
+
+Les règles effectuent un ou plusieurs tests, mais toutes se terminent
+ par le test de TTT, afin de ne laisser passer aucun cas non traité.
+
+
+Là encore, la casse est ignorée et les majuscules servent à la
+ lisibilité. Mais, là encore, beaucoup de majuscules subsistent
+ depuis l'établissement des premières règles.
+
+3.33. Table vers racines
+
+La dernière table de ce fichier permet d'insérer un éventuel phonème
+ de liaison à la fin d'un mot. Les adresses introduites par PG (voir
+ 3.3.) ne sont pas directement celles d'un des deux tableaux racines
+ de l'arbre, TabDeb ou TabGen, mais l'une des étiquettes de la "table
+ vers racines". Pour aller au tableau TabDeb (début de mot), on passe
+ d'abord par NonL (pas de liaison), LiaE (élision du e si le mot
+ suivant commence par une voyelle, conservation du e sinon), LiaN
+ (liaison N si le mot suivant commence par une voyelle), de même
+ LiaP, LiaT et LiaZ. La conservation du e grâce à LiaE se fait seulement
+ si le mot en cours se termine par au moins deux consonnes phonétiques
+ devant le e ("prendre l'air" vs "belle journée").
+
+Le passage par LiaCir permet d'ajouter un symbole d'allongement de
+ voyelle. Ainsi, le a dans "il a encore faim" est allongé pour éviter
+ un hiatus trop bref qui aurait tendance à gommer le a.
+
+L'étiquette Gen mène, elle, directement à TabGen, sans ajout.
+
+L'étiquette lgTab n'avait d'utilité que pour indiquer la taille
+ des données en mémoire.
+
+4. Utilitaire CompiTab fournissant synthe.tab
+
+Dans les versions de Synthé à microprocesseur, le compilateur du
+ programme compilait également les tables, fournissant un fichier
+ binaire destiné à programmer la mémoire. Ici, les tables se présentant
+ sous forme de fichier, elles peuvent être chargées directement
+ par Synthé au lancement. Cependant, afin d'accélérer le chargement
+ de la ressource, le programme en C++, développé en 2001, prévoyait
+ une compilation séparée des tables, fournissant un fichier binaire
+ plus compact synthe.tab, servant de ressource pour le programme. Ce
+ procédé en deux temps est moins pertinent aujourd'hui, mais présente
+ encore l'avantage de détecter certaines erreurs de la table en fournissant
+ un bilan de la compilation (voir ci-dessous). La fusion éventuelle
+ de cet utilitaire avec l'entrée du programme Synthé reste donc
+ d'un intérêt limité.
+
+4.1. Structure Symbole
+
+La compilation de synthe.txt repose sur la création d'une table de
+ symboles. Chaque symbole est défini par son nom (char*) et sa valeur
+ (attribuée par une égalité ou par la position dans le code en
+ tant qu'étiquette). Deux autres entiers sont associés à chaque
+ symbole : le nombre de fois où il est défini et le nombre de fois
+ où il est référencé. Après lecture du fichier, chaque symbole
+ doit être défini une fois et une seule (sinon erreur), et référencé
+ au moins une fois (sinon il est inutilisé).
+
+4.2. Sources de CompiTab
+
+Le programme effectue deux passes sur le fichier synthe.txt. Dans
+ la première passe, il fabrique la table des symboles et fournit
+ le fichier bilan.txt qui contient le nombre de symboles, ainsi que,
+ le cas échéant, les symboles non définis, multi-définis ou non
+ référencés. Dans la deuxième passe, le programme CompiTab fabrique
+ le fichier binaire synthe.tab.
+
+Des commentaires ont été ajoutés dans la source afin de comprendre
+ facilement le fonctionnement de ce petit programme.
+
+5. Sources de Synthé 3
+
+Les 10 fichiers .cpp sont décrits ici de façon plus ou moins poussée,
+ mais la description détaillée des ressources (ci-dessus) permet
+ de comprendre une bonne partie du code. Certains points pourront
+ être détaillés ultérieurement selon les besoins.
+
+5.1. Le fichier SynMain.h (header inclus SynGlobal.h)
+
+Ce header est utilisé par tous les modules de Synthé. Il contient
+ les déclarations communes à ces modules : constantes (notamment
+ les phonèmes et catégories), structures et tableaux communs, fonctions
+ globales.
+
+5.2. Le fichier Synthe.cpp (headers Synthe.h et SynMain.h)
+
+C'est le programme principal. Il contient les fonctions publiques
+ qui permettent de gérer la synthèse vocale.
+
+La fonction principale est SynTexte. Elle prend en paramètres le
+ texte à lire, puis les paramètre de la voix : volume, débit, hauteur,
+ phonétique/alphabétique, mode de lecture plus ou moins bavard, interprétation
+ ou non du séparateur de milliers pour les nombres, sortie ou non
+ du son, sortie ou non d'un fichier wave, nom éventuel de ce fichier.
+
+
+L'envoi de cette fonction arrête d'abord toute lecture en cours sans
+ attendre qu'elle soit terminée. C'est le cas le plus fréquent lorsqu'
+on parcourt un document ou des menus. Si on souhaite attendre la fin
+ de la lecture en cours (lecture continue), il faut utiliser d'abord
+ une autre fonction (ci-dessous) qui permet d'attendre la fin de la
+ lecture.
+
+Ensuite, des opérations sont effectuées sur la longueur du texte
+ pour éviter tout dépassement, puis le texte est converti en Latin1
+ s'il est en UTF-8, afin de simplifier la suite des opérations, avec
+ un seul octet par caractère. Ensuite un test : l'utilisateur peut
+ demander le numéro de version de Synthé avec le mot-clé "nversionsyn
+". Ensuite, la fonction compte les index de lecture, qui sont de la
+ forme "øí", association de lettres très improbable dans un texte.
+ Si l'utilisateur n'a pas placé d'index, c'est le programme qui s'
+en charge. Il en place un entre chaque mot afin que l'on puisse interroger
+ Synthé sur la progression de la lecture.
+
+Enfin, la fonction crée le thread fThAlpha, qui continue les opérations
+ en tâche de fond, rendant la main au programme principal qui a appelé
+ Synthé.
+
+La deuxième fonction publique est synIndex. Elle retourne le nombre
+ d'index restant à lire. Quand ce nombre arrive à zéro, la lecture
+ est terminée. On l'utilise surtout pour attendre la fin de la lecture.
+
+
+La troisième fonction publique est synPosLec. Plus élaborée que
+ synIndex, elle retourne la position de lecture, ce qui permet par
+ exemple d'afficher cette position sur le texte en cours de lecture.
+
+
+La quatrième fonction publique est synStop. Elle arrête la lecture
+ en cours.
+
+La fonction privée fThAlpha, appelée en lançant le thread de lecture,
+ ne fait qu'appeler synTex, suite du traitement décrit en 5.5.
+
+La fonction privée demandeStopEtAttendFinThread, utilisée par synStop,
+ arrête la lecture en cours, en positionnant une variable globale
+ sur stop puis en attendant la fin du thread. L'index est mis à zéro
+ et l'objet son est détruit.
+
+La fonction privée copieEtAjouteIndexSiPas compte les index de lecture
+ et les ajoute s'ils sont absents.
+
+Les deux dernières fonctions, initSynthe et quitteSynthe, publiques,
+ sont obligatoires pour initialiser Synthé au lancement avant tout
+ autre appel de fonction et pour quitter. La fonction initSynthe initialise
+ les tables de conversion UTF-8 Latin1, les variables pour les sections
+ critiques, les index, le stop, les paramètres de lecture à leur
+ valeur de base, et construit les ressources linguistiques : la voix
+ à partir du fichier Michel.seg, et les tables à partir du fichier
+ synthe.tab. Enfin, il dit "Synthé prêt". De son côté, la fonction
+ quitteSynthe stoppe un éventuel message en cours et détruit toutes
+ les ressources.
+
+5.3. Le fichier utf-8.cpp (header SynMain.h)
+
+Pour le français en UTF-8, le premier octet peut être C2, C3, C5,
+ C6 ou CB, rarement autre chose (caractères spéciaux). On construit
+ donc 5 tableaux latinC2, latinC3, etc. qui contiennent en index les
+ 256 valeurs possibles du deuxième octet. Chaque caractère Latin1
+ a été placé dans le tableau correspondant à l'index correspondant,
+ par la fonction initSynthe de Synthe.cpp.
+
+La seule fonction de utf-8.cpp est UTF8Latin1, qui prend en paramètres
+ les pointeurs de la chaine à lire et de la chaine à écrire. La
+ variable bilan est incrémentée de 10 quand un caractère UTF-8
+ valide et convertible en Latin1 est trouvé, décrémentée de 1
+ s'il est inconnu, décrémentée de 10 s'il n'est pas un UTF-8 valide.
+ Cette variable permet de diagnostiquer le codage en UTF-8 et de retourner
+ vrai ou faux selon que la chaine à lire est considérée codée
+ en UTF-8 ou non.
+
+Une série de tests est d'abord effectuée pour les caractères spéciaux
+ qui ne pouvaient pas être facilement regroupés. Les caractères
+ commençant par E0 ou plus sont codés sur 3 octets (guillemets, apostrophes
+ penchées, tiret non sécable, euro, trade-mark, etc.) Les caractères
+ commençant par C0 à DF sont codés sur 2 octets. Les tests sur
+ le premier octet permettent de choisir le tableau applicable, puis
+ d'en tirer le caractère Latin1.
+
+5.4. Le fichier SynVoix.cpp (headers SynVoix.h et SynMain.h)
+
+Ce fichier contient les ressources linguistiques des voix et tables :
+ classe Voix et classe Tab.
+
+Le constructeur de la voix lit le nombre de segments, le nombre d'
+échantillons (voir en 2. Structure du fichier voix) et remplit les
+ tableaux.
+
+Le constructeur des tables lit d'abord les adresses des tables (en
+ fait leurs index sur 16 bits), puis leurs contenus dans le tableau
+ tTab. La variable decal permet de repositionner tTab au début des
+ adresses, de façon à ce que tTab + indice table pointe sur la table
+ choisie.
+
+5.5. Le fichier SynTex.cpp (headers SynMain.h, SynParle.h, SynTrans.
+h)
+
+Ce fichier traite le texte en lui faisant effectuer les différents
+ traitements jusqu'à la parole. Les traitements principaux sont la
+ transcription graphème-phonème, effectuée par la classe Transcription
+ dans SynTrans.cpp, et la parole, par la classe Parle, dans SynParle.
+cpp (voir plus loin). Les headers de ces modules, SynTrans.h et SynParle.
+h, sont nécessaires. Les paramètres globaux et certaines fonctions,
+ qui doivent être accessible depuis tous les recoins du logiciel,
+ sont gérés par la classe Global dans SynGlobal.cpp.
+
+La fonction synTex positionne les paramètres reçus en effectuant
+ les réglages dans l'objet synGlobal (seul objet de la classe Global),
+ puis crée l'objet synTranscription pour effectuer un prétraitement
+ de normalisation du texte (voir plus loin) et ensuite la conversion
+ en phonétique, et enfin crée l'objet synParle pour faire prononcer
+ le texte phonétique. Après ces traitements, la fonction détruit
+ les objets créés et positionne l'index à zéro.
+
+5.6. Le fichier SynTrans.cpp (headers SynTrans.h, SynMain.h et SynVoix.
+h)
+
+(reprise)
+
+Ce fichier contient toutes les fonctions de la classe Transcription :
+
+
+La fonction phonemePhoneme convertit les phonèmes du texte (représentés
+ par des lettres) en phonèmes internes à Synthé par le tableau
+ tPhon. Utile uniquement dans le cas où l'utilisateur envoie les
+ textes en mode phonétique.
+
+La fonction minMajNFois est un prétraitement du texte : les chaînes
+ de caractères identiques (répétés au moins 3 fois) sont remplacées
+ par l'annonce du nombre de caractères et de celui-ci, par exemple
+ "45 fois étoile") afin d'éviter une longue répétition du même
+ caractère ("étoile étoile étoile étoile" etc.) Les majuscules
+ sont converties en minuscules, dans le code commun interne à Synthé.
+
+
+La fonction graphemePhoneme est la principale fonction de ce module.
+ Elle convertit le texte alphabétique (code commun interne à Synthé)
+ en texte phonétique (interne à Synthé). Le principe est décrit
+ en détail en 1.3. En un point donné de l'arbre, le programme parcours
+ les règles du nœud en cherchant celle qui s'applique : cela peut
+ être un caractère, une catégorie, le mode bavard s'il est activé
+ (verbosité sur la ponctuation), le développement ou non des abréviations.
+ Si une règle est validée, le programme la traite et prépare l'
+adresse suivante. Les chiffres sont l'objet d'un traitement particulier
+ (ci-dessous). Les sigles formés uniquement de consonnes sont épelés.
+ Les règles de type dictionnaire provoquent une recherche dans le
+ dictionnaire de morceaux de mots. Les caractères de liaison sont
+ également traités. Il y a toujours une règle validée, car la
+ dernière de chaque nœud (TTT) s'applique par défaut en l'absence
+ de succès des règles précédentes.
+
+La fonction traiteNombre convertit en phonétique les nombres exprimés
+ en chiffres. Dans la première boucle, les grands nombres sont découpés
+ en segments de 12 chiffres maximum (999 milliards). En mode "compta
+", les espaces séparateurs de milliers sont ignorés, mais les espaces
+ délimitant des groupes de plus ou moins de 3 chiffres sont conservés.
+ Dans la deuxième boucle, les zéros qui précèdent le nombre sont
+ prononcés (exemple "007"). Dans la troisième boucle, le nombre
+ est phonétisé. Dans chaque groupe de 3 chiffres, les centaines,
+ dizaines et unités doivent être prononcées, puis "milliards", "millions
+", "mille" ou rien pour le dernier groupe. Les tests permettent de
+ distinguer les cas où un groupe comporte 1, 2 ou 3 chiffres ainsi
+ que les exceptions pour les dizaines (exemples "13", "31", "75", 91
+"). Les liaisons éventuelles sont prévues.
+
+La fonction finNombre est appelée par traiteNombre quand on arrive
+ au dernier chiffre afin de traiter les liaisons éventuelles : quand
+ le dernier chiffre est un 8, le 't' n'est pas prononcé si le mot
+ suivant commence par une consonne phonétique ("8 jours"). Quand
+ le dernier chiffre est un 6 (sauf 16, 76 et 96) ou que la fin du
+ nombre est 10, 70 ou 90, on place le pointeur sur la règle .Dix1,
+ qui offre 3 possibilités (s, z ou rien) selon que le nombre est
+ suivi d'une pause ou d'une voyelle ou d'une consonne (exemples, respectivement
+ "10", "10 ans", "10 jours").
+
+La fonction phonChif phonétise le chiffre ou plus généralement
+ la portion de nombre qui est pointée jusqu'au terminateur 80. Une
+ liaison éventuelle est préparée si elle est présente derrière
+ le terminateur.
+
+La fonction carSuiv lit le caractère suivant du texte à lire en
+ interprétant une éventuelle balise d'index.
+
+La fonction ecritPhon écrit un caractère phonétique en ajoutant
+ un phonème de liaison s'il est présent et que la liaison est possible.
+
+
+Enfin, la fonction ecrit écrit le phonème dans le texte phonétique,
+ avec une sécurité sur la longueur.
+
+5.7. Le fichier SynParle.cpp (headers SynParle.h, SynMain.h, SynSon.
+h, SynCalcul.h et SynVoix.h)
+
+C'est ici que la parole se fabrique. Ce fichier (le plus gros) contient
+ les fonctions de la classe Parle ainsi que deux petites fonctions
+ globales.
+
+Concernant les headers :
+
+SynParle.h définit quatre structures ainsi que le prototype de la
+ classe Parle. Les morceaux de phonèmes et de diphones sont appelés
+ ici sous-diphones. Comme il y a interpolation dans les parties intermédiaires
+ entre un sous-diphone et le suivant, on considère qu'on est toujours
+ dans le mélange entre deux sous-diphones, même si un seul des deux
+ est présent, l'autre étant à zéro (voir 1.2). Les variables contenant
+ "DS" concernent le début d'un sous-diphone, celles contenant "FS
+" concernent la fin d'un sous-diphone.
+
+De même qu'il y a une interpolation à l'échelle du sous-diphone,
+ il y en a également une à l'échelle de la période. Selon la fréquence
+ et la vitesse de la parole, les périodes peuvent être tronquées
+ ou allongées, certaines peuvent être supprimées ou au contraire
+ dupliquées. Pour passer de l'une à l'autre sans discontinuité,
+ il y a un fondu enchaîné entre les deux grâce à une fenêtre
+ sinusoïdale servant de facteur multiplicatif. Les variables contenant
+ "croit" concernent la fenêtre croissante (allant de 0 à 100% en
+ suivant une sinusoïde), celles contenant "decroit" concernent la
+ fenêtre décroissante (allant de 100% à 0 de la même façon).
+
+Considérant l'interpolation entre les sous-diphones et celle entre
+ les périodes, il y a donc en tout 4 segments à additionner lors
+ du calcul de chaque période, avec des facteurs multiplicatifs différents.
+ Les structures définies dans SynParle.h contiennent ainsi chacune
+ 4 variables : DSDecroit, DSCroit, FSDecroit, FSCroit. Ces structures
+ sont :
+
+Marq : indique la présence ou l'absence de chacun des 4 segments
+ à additionner.
+
+UChar : sert pour le numéro de segment, la valeur de la période
+ et celle de l'amplitude de chacun des 4 segments à additionner. Il
+ serait bon de remplacer les unsigned char par des short pour les
+ numéros de segments si on veut pouvoir utiliser plus de 256 segments.
+
+
+PUChar : pointeur sur l'amplitude des 4 segments à additionner.
+
+PSChar : pointeur sur les 4 segments à additionner.
+
+Le header SynSon.h contient quelques constantes pour gérer le son
+ et le prototype de la classe classSon.
+
+Le header SynCalcul.h contient quelques constantes pour les calculs
+ et le prototype des fonctions fenCroit et fenDecroit qui réalisent
+ le fondu enchaîné entre périodes.
+
+
+
+Le fichier SynParle.cpp (objet de ce chapitre) contient principalement
+ les fonctions de la classe Parle. Il contient au début quelques
+ constantes (PI serait à retirer car déjà défini comme const double
+ dans SynCalcul.h). Il contient également quelques variables sur
+ la portée du module.
+
+La principale fonction de la classe Parle est traiteTextePhonetique.
+ Elle prend la chaîne phonétique en entrée et la prononce. Après
+ de nombreuses initialisations, dont la création de l'objet synSon
+ qui gère la carte-son, la parole se fait par une fonction répétée
+ en boucle :
+
+while (traiteUnePeriode());
+
+Après cette boucle, il n'y a plus d'échantillon à fabriquer, mais
+ le buffer contient encore un reliquat pas encore lu. L'instruction :
+
+
+synSon->sonExit()
+
+lui ajoute une série zéros sous DirectSound (Windows) avant de rendre
+ la main pour éviter de couper la fin. Sous ALSA (Linux), la fonction
+ ne fait rien (inutile).
+
+La fonction traiteUnePeriode cherche d'abord la prochaine période
+ croissante, qui peut être la suivante (normal), la même (débit
+ lent), plus loin que la suivante (débit rapide), puis elle fabrique
+ en boucle la suite des échantillons de la période résultante en
+ combinant les différents segments. L'instruction :
+
+synSon->transfert((void*)&ech)
+
+envoie chaque échantillon au gestionnaire de la carte-son.
+
+Puis de nouvelles mises à jour sont effectuées avant la fin de traiteUnePeriode
+ pour préparer la suivante (notamment l'appel de la fonction perioSuiv).
+ C'est là que la fin éventuelle du message est détectée, retournant
+ faux.
+
+La fonction initDecroitSurCroit, appelée pour préparer la prochaine
+ période, reprend toutes les valeurs des variables "croit" dans les
+ variables "decroit" car, dans la période suivante, les échantillons
+ utilisés précédemment dans la fenêtre croissante seront utilisés
+ dans la fenêtre décroissante.
+
+La fonction perioSuiv prépare la prochaine période à fabriquer
+ pour la fenêtre considérée, croissante ou décroissante. Elle
+ gère les marqueurs DS et FS de début et fin de sous-diphone. Si
+ un bit de début de sous-diphone est rencontré dans un DS, le sous
+-diphone en cours passe en FS et le prochain sous-diphone est recherché
+ pour le prochain DS. Si le bit de fin de sous-diphone est rencontré
+ en FS, c'est que le FS en cours est terminé, il ne reste que le
+ DS jusqu'à ce qu'il rencontre lui aussi un bit de début. Si le
+ bit de "phonème avec bruit" est rencontré, le phonème n'est pas
+ périodique, la période suivante n'est pas la répétition de la
+ même mais la suite du signal. A la fin de la fonction, la durée
+ de la période est calculée en fonction du poids des différents
+ signaux mélangés.
+
+La fonction nouveauSousDiph met à jour les variables correspondant
+ à ce sous-diphone. Comme expliqué en 3.20 à 3.25, les diphones
+ sont divisés en trois sous-diphones : fin du phonème précédent,
+ transition du phonème précédent au phonème suivant, début du
+ phonème suivant. Chaque sous-diphone correspond à une table d'échantillons
+ différente et à une courbe d'amplitude différente. La variable
+ nSousDiph, valant 0, 1 ou 2, permet de savoir dans quel type de sous
+-phonème on se trouve. C'est dans cette fonction que les adresses
+ des tables à utiliser sont définies.
+
+La fonction phonSuiv, comme son nom l'indique, retourne le prochain
+ phonème du texte phonétique. Elle est appelée par la fonction
+ précédente quand le dernier tronçon d'un diphone a été traité
+ et que le premier du prochain diphone doit être calculé. La variable
+ iLecPhonX est l'index de lecture dans le texte phonétique, phonG
+ étant le phonème de gauche (donc le précédent). Le cas de voyelles
+ consécutives identiques est traité comme un allongement de la voyelle
+ en cours (sans passer par un timbre intermédiaire). La fin éventuelle
+ du texte est détectée dans cette fonction, qui retourne alors -1.
+ En fait, cette valeur de retour est retardée d'un cran grâce à
+ phonMem, pour donner le temps d'un diphone entre le dernier phonème
+ et le silence symbolisé par VR=virgule (sinon, le dernier phonème
+ serait coupé avant la fin).
+
+La fonction calculeEchPerioDecroit calcule un échantillon de la période
+ décroissante. Pour calculer le fondu enchaîné entre deux périodes,
+ on évite autant que possible la partie de plus forte amplitude de
+ ces périodes, pour éviter la diaphonie qui serait créée par deux
+ sons simultanés d'amplitude forte. Durant la vibration des cordes
+ vocales, l'ouverture crée une impulsion sonore, qui résonne dans
+ les cavités (nez, bouche) et décroît jusqu'à la prochaine ouverture.
+ Comme les périodes sont cadrées à partir de la partie la plus
+ calme du signal, on a considéré, pour simplifier, que la partie
+ la plus puissante du signal se situait en moyenne un quart de période
+ plus loin. D'où la variable xCadre, qui permet de recadrer la période.
+ Lorsque la période résultante (donc la cible) est inférieure à
+ la période décroissante (la source), la fenêtre prend la largeur
+ de la période résultante, pour arriver à zéro au bon moment. A
+ l'inverse, lorsque la période résultante est supérieure à la
+ période décroissante, c'est la période décroissante qui est choisie
+ pour éviter de sortir de la période source avant la fin de la période
+ cible. Dans l'intervalle qui suit (donc avant la fin de la période
+ résultante), on retourne des zéros.
+
+La fonction calculeEchPerioCroit fonctionne de la même façon, pour
+ la période croissante.
+
+Après les fonctions de la classe Parle, deux fonctions de la portée
+ du module sont présentes : initWave initialise ou termine la fabrication
+ d'un éventuel fichier wave (dans l'option fabrication d'un fichier
+ wave). En initialisation (paramètre init=true), le fichier est créé
+ et les paramètres de son entête sont copiés en respectant le format
+ wave. Dans cette option, le signal sonore est fabriqué par les fonctions
+ de la classe Parle, les échantillons étant copiés derrière l'
+entête. A la fin, initWave est appelé avec le paramètre init=false,
+ ce qui permet de compléter le fichier avec sa longueur dans l'entête
+ et de fermer le fichier.
+
+La fonction sonDestruction, qui peut être appelée depuis différents
+ modules, détruit l'objet son, qui lui aussi est global au module.
+
+
+5.8. Le fichier SynCalcul.cpp (header SynCalcul.h)
+
+Ce fichier contient uniquement les fonctions fenCroit et fenDecroit,
+ appelées par calculeEchPerioCroit et calculeEchPerioDecroit. Elles
+ fournissent le coefficient de la fenêtre sinusoïdale en fonction
+ de la position dans la fenêtre, sans pouvoir sortir des limites
+ de celle-ci. Ces deux petites fonctions pourraient avantageusement
+ être rapatriées dans SynParle.cpp, et même dans la classe Parle,
+ puisqu'elles ne concernent que celle-ci. De même, les constantes
+ de SynCalcul.h devraient être transférées dans SynParle.h.
+
+5.9. Le fichier SynSon.cpp (headers SynSon.h, SynMain.h)
+
+Ce fichier contient les membres de la classe classSon. Cette classe
+ gère l'envoi des échantillons vers la carte-son sans rentrer dans
+ le détail des différents pilotes, qui font l'objet de fichiers
+ séparés. Néanmoins, des conditions de compilation sont nécessaires
+ selon le pilote (lié au système d'exploitation). Le constructeur
+ initialise les variables, alloue de la mémoire pour certaines et
+ ouvre la carte-son (c'est-à-dire construit son pilote).
+
+Le destructeur désalloue la mémoire et ferme la carte-son.
+
+La fonction ouvertOK retourne true si la carte-son a été ouverte
+ avec succès lorsque l'objet son a été construit.
+
+La fonction finirSon n'est utilisée que dans le cas de DirectSound.
+ Elle est appelée avec le paramètre false dès que la carte-son
+ a été ouverte avec succès, pour indiquer que l'on peut transférer
+ les échantillons. A la fin, quand tous les échantillons ont été
+ fabriqués, La fonction est appelée avec le paramètre true. Cela
+ permet de positionner les limites de la lecture dans le buffer et
+ d'envoyer des zéros après les derniers échantillons pour éviter
+ un son inopportun si le pointeur de lecture dépasse celui d'écriture.
+ Il reste alors à attendre que les derniers échantillons soient
+ diffusés par la carte-son. En effet, DirectSound est un peu imprécis
+ sur le calcul de la position courante de lecture. Cette opération
+ est inutile avec ALSA.
+
+La fonction transfert transfère vers la carte-son les échantillons
+ fabriqués, paquet par paquet. Les tests concernent essentiellement
+ DirectSound. Sous Linux, avec ALSA, seule la fonction transferePaquet
+ est appelée chaque fois qu'un paquet est rempli.
+
+La fonction attendSiEcrOuLecRattrape est utilisée seulement par DirectSound,
+ même en dehors des conditions de compilation. Il faudrait transférer
+ tous les traitements propres à DirectSound dans le fichier DirectSon.
+cpp, pour ne garder que les parties communes dans SynSon.cpp, comme
+ on le fait dans Kali depuis peu. Comme le buffer est géré par l'
+utilisateur dans DirectSound, la fonction appelle positionLecture,
+ qui retourne la position – approximative – du pointeur de lecture
+ et utilise des tests pour s'assurer que les pointeurs de lecture
+ et d'écriture ne se doublent jamais. L'incertitude sur la position
+ de lecture, associée au caractère circulaire du tampon (impliquant
+ un bouclage) compliquent quelque peu les tests. Sous DirectSound,
+ l'index de lecture est géré par un tableau contenant un index par
+ paquet. Il est mis à jour chaque fois qu'un paquet est lu. Sous
+ ALSA, comme on n'accède pas à la position de lecture, l'index est
+ calculé en fonction du temps, ce qui marche très bien, sachant
+ que la fréquence d'échantillonnage est constante.
+
+5.10. Les fichiers alsa.cpp et DirectSon.cpp (headers SynSon.h, SynGlobal.
+h)
+
+Ces fichiers gèrent la carte-son, l'un pour Linux, l'autre pour Windows.
+ C'est la partie de classSon qui est spécifique à chaque système.
+ Comme on l'a vu, DirectSon.cpp devrait rapatrier quelques fonctions
+ de SynSon.cpp pour plus de clarté.
+
+5.10.1. Le fichier alsa.cpp
+
+La fonction open_snd ouvre la carte-son.
+
+La fonction close_snd ferme la carte-son.
+
+La fonction set_snd_params fixe la valeur des paramètres du son (fréquence
+ d'échantillonnage, nombre de bits, etc.)
+
+La fonction transferePaquet envoie chaque paquet d'échantillons à
+ la carte-son.
+
+Les fonctions sonExit, pauseSiJoue, joueSiPause et positionLecture
+ ne font rien ici car elles ne sont utilisées que par DirectSound.
+
+
+5.10.2. Le fichier DirectSon.cpp
+
+La fonction open_snd ouvre la carte-son.
+
+La fonction close_snd ferme la carte-son.
+
+La fonction set_snd_params ne fait rien (car utile seulement à ALSA).
+
+
+La fonction sonExit écrit des échantillons nuls jusqu'à la fin
+ de la lecture.
+
+La fonction initWindow remet à jour l'objet DirectSound en cas de
+ changement de focus (évite que le son se coupe).
+
+La fonction pauseSiJoue arrête le son si la lecture rattrape l'écriture
+ (ne devrait pas se produire si la fréquence disponible du processeur
+ est supérieure à 100 MHz).
+
+La fonction joueSiPause relance le son.
+
+La fonction positionLecture retourne la position de lecture du buffer
+ de son, pour gérer la lecture et l'écriture de ce buffer.
+
+La fonction creeBufferSecondaire crée le buffer secondaire et fixe
+ la valeur des paramètres du son. Ce buffer est celui qui reçoit
+ les paquets d'échantillons et les lit. Plusieurs applications peuvent
+ créer des buffers secondaires différents, qui sont mixés automatiquement
+ dans le buffer primaire.
+
+La fonction modifieBufferPrimaire fixe également les paramètres
+ du son, identiques à ceux du buffer secondaire (sinon, le mixage
+ pose des problèmes).
+
+La fonction transferePaquet envoie chaque paquet d'échantillons à
+ la carte-son.
+
+5.11. Le fichier SynGlobal.cpp (header SynGlobal.h)
+
+Ce fichier contient les fonctions de la classe Global. Le header SynGlobal.
+h contient les prototypes de ces fonctions ainsi que les variables
+ de cette classe. Il contient aussi des constantes et des fonctions
+ de portée globale qui pourraient être déplacées dans SynMain.
+h pour plus de clarté.
+
+Les fonctions getNbIndexLec et setNbIndexLec permettent d'accéder
+ à l'index de lecture depuis tout point du logiciel. Les fonctions
+ getNbIndexEcr et setNbIndexEcr permettent d'accéder à l'index écrit
+ dans le tampon circulaire (DirectSound seulement) au moment de l'
+écriture des échantillons, index qui sera récupéré comme index
+ de lecture au moment où cette partie du tampon sera lue. Les fonctions
+ getNbIndexMax et setNbIndexMax permettent d'accéder à la valeur
+ de l'index avant le début de la lecture, donc au nombre total d'
+index de la phrase (ALSA seulement).
+
+Les fonctions getDemandeStop et setDemandeStop permettent de gérer
+ l'arrêt de la lecture.
+
+Les fonctions getThreadOK et setThreadOK servent à savoir si on est
+ dans le thread de synthèse (débogage seulement).
+
+Les fonctions getVolume, setVolume, getDebit, setDebit, getHauteur,
+ setHauteur gèrent les paramètres de la voix. Les fonctions getPhon
+ et setPhon gèrent le mode phonétique (entrée texte alphabétique
+ ou phonétique). Les fonctions getModeLecture et setModeLecture gèrent
+ le mode de lecture (ponctuation prononcée ou interprétée). Les
+ fonctions getModeCompta et setModeCompta gèrent le mode comptabilité
+ (séparateurs de milliers ou non).
+
+Les fonctions getSortieSon, setSortieSon, getSortieWave, setSortieWave,
+ getNomFichierWave, setNomFichierWave gèrent le type de sortie du
+ son (carte-son ou écriture wave).
+
+Les fonctions getktime0us, setktime0usS, getktime0s et setktime0s
+ permettent de gérer le chronomètre pour le calcul de l'index de
+ lecture. La fonction initTNEch initialise le tableau de correspondance
+ nombre d'échantillons/index, la fonction destTNEch le détruit, les
+ fonctions getTNEch et setTNEch gèrent ses valeurs. Les fonctions
+ getCtEch, setCtEch et incrCtEch gèrent le compteur d'échantillons
+ entre deux index, dont la valeur finale est copiée dans le tableau
+ par setTNEch.
+
+Derrière les fonctions de la classe Globale se trouvent les variables
+ utilisées pour créer des sections critiques, ainsi que les fonctions
+ pour les initialiser, les détruire, y entrer ou en sortir.
+
+6. Améliorations envisageables de Synthé 3
+
+Compte tenu de son principe rudimentaire, Synthé 3 n'a pas vocation
+ à rivaliser avec les synthèses actuelles, même celles par diphones
+ comme Kali. Il faut garder le principe d'une période par diphone
+ (logiciel très léger). Au-delà, on retombe sur la problématique
+ de la synthèse par diphones (cf. Kali), avec des fichiers 50 fois
+ plus gros et des traitements évolués pour raccorder la hauteur,
+ l'intensité, le timbre.
+
+Quelques petites corrections peuvent être réalisées rapidement
+ ou à assez court terme :
+
+1. dans la structure UChar, remplacer les numéros de segments par
+ des short, comme suggéré en 5.7,
+
+2. supprimer l'une des définitions de PI,
+
+3. déplacer dans SynMain.h les globales qui n'appartiennent pas à
+ la classe Global,
+
+4. transférer dans directson.cpp les traitements qui sont propres
+ à DirectSound.
+
+A plus long terme, quelques idées peuvent être développées :
+
+5. Nouvelle voix : choisir une voix souple, agréable, puis à l'
+aide d'un logiciel approprié, enregistrer les 27 périodes de phonèmes
+ (+ des périodes excédentaires pour les fricatives et les plosives,
+ comme prévu dans Synthé) et les 729 périodes des diphones (compter
+ environ 60 ko pour la voix, contre 20 ko dans la version actuelle).
+ Les variables nbEch et tAdr passeraient en 32 bits. On améliorerait
+ sensiblement la qualité en passant de 8 bits à 16 bits pour le
+ signal (taille 120 ko pour la voix). On pourrait remplacer la version
+ moyenne des phonèmes o, e, é par les timbres ouvert et fermé de
+ chacun d'eux, ce qui donnerait 30x30=900 périodes de diphones. J'
+envisage (un jour lointain) de faire générer par Kali les voix au
+ format Synthé 3 pour lui donner 3 voix en français et 2 voix en
+ anglais.
+
+6. Dictionnaire de transcription : n'étant plus limités à des
+ adresses de 16 bits, on pourrait ajouter d'autres formes ainsi qu'
+un véritable dictionnaire de mots, qui serait testé dès la première
+ lettre de chaque mot
+
+
+

@@ -1,0 +1,282 @@
+[
+  {
+    "text": "Bonjour.",
+    "rate": 0,
+    "pitch": 0,
+    "bytes": 38610,
+    "sha256": "7c787ff989aae692452ec26d6f959a8baee9b517f2b9886f83d433f1aa5bee43"
+  },
+  {
+    "text": "Bonjour.",
+    "rate": 54,
+    "pitch": 0,
+    "bytes": 13648,
+    "sha256": "fb08c97ad48634b8f4f5508871fc15d8338a4f46536d1e0f063fca775dd7bcd9"
+  },
+  {
+    "text": "Bonjour.",
+    "rate": -100,
+    "pitch": -100,
+    "bytes": 60792,
+    "sha256": "5accb378274ee561d6643f935c31d22cfb54b34d4f335982e200f3e7faa88a8f"
+  },
+  {
+    "text": "Bonjour.",
+    "rate": 100,
+    "pitch": 100,
+    "bytes": 10950,
+    "sha256": "6df43eebca868a4ba545449d265293a9213bf036f178489bdfed7c415512c994"
+  },
+  {
+    "text": "Bonjour.",
+    "rate": -70,
+    "pitch": 35,
+    "bytes": 54182,
+    "sha256": "998f1dd6bfe602eb6df4e6316fe66d371ffd37191aae52489f70ea5bfcf3f9a5"
+  },
+  {
+    "text": "À l’école, les élèves écoutent Synthé trois.",
+    "rate": 0,
+    "pitch": 0,
+    "bytes": 127912,
+    "sha256": "13940bd021ef5186a319ace842189554b83b4f493a5127d0e45aeb6f3c45b166"
+  },
+  {
+    "text": "À l’école, les élèves écoutent Synthé trois.",
+    "rate": 54,
+    "pitch": 0,
+    "bytes": 45326,
+    "sha256": "9959373e61feb2f2f43c482666d94c776f06b5ebf261ed4410a9526ace691a19"
+  },
+  {
+    "text": "À l’école, les élèves écoutent Synthé trois.",
+    "rate": -100,
+    "pitch": -100,
+    "bytes": 202838,
+    "sha256": "7fb637acc283ed7f31a55444e9f25f1a78c26e1283a90fe5c88fc123f96744b6"
+  },
+  {
+    "text": "À l’école, les élèves écoutent Synthé trois.",
+    "rate": 100,
+    "pitch": 100,
+    "bytes": 35836,
+    "sha256": "42c50f111d819eb6f95dac2888e51ed164e39658c8fc617eddcf79497a352650"
+  },
+  {
+    "text": "À l’école, les élèves écoutent Synthé trois.",
+    "rate": -70,
+    "pitch": 35,
+    "bytes": 181184,
+    "sha256": "4a12cd30cc521019ef1a051b963e1b6b932426e2fb88261ea8a09465bda441f3"
+  },
+  {
+    "text": "123 456,78 euros, en 2026.",
+    "rate": 0,
+    "pitch": 0,
+    "bytes": 270994,
+    "sha256": "b3d94502c2688d3b949ff72f8fde9e509355c815c4949300b2b5c3afca050301"
+  },
+  {
+    "text": "123 456,78 euros, en 2026.",
+    "rate": 54,
+    "pitch": 0,
+    "bytes": 95992,
+    "sha256": "d8671cb922456158c8e650ab21e2692067d09871ab53da5a82ebfac3478d40e6"
+  },
+  {
+    "text": "123 456,78 euros, en 2026.",
+    "rate": -100,
+    "pitch": -100,
+    "bytes": 430134,
+    "sha256": "63532482b9be96043d77ea9ee10f10bdf299a161c2a225a5d1399f5684b83ff5"
+  },
+  {
+    "text": "123 456,78 euros, en 2026.",
+    "rate": 100,
+    "pitch": 100,
+    "bytes": 76174,
+    "sha256": "7af05532ab95bcf80f98250c9ada17d2ff9e4924dd57b13c6ab04435784b364d"
+  },
+  {
+    "text": "123 456,78 euros, en 2026.",
+    "rate": -70,
+    "pitch": 35,
+    "bytes": 383640,
+    "sha256": "f25d63b6770cae5b9833a51f171b4512d14633244f7f429897fe434281f47540"
+  },
+  {
+    "text": "Les oiseaux chantent dans les arbres.",
+    "rate": 0,
+    "pitch": 0,
+    "bytes": 96690,
+    "sha256": "a5f9322a3b2eb7b2c6e7c4d816a20c59c15d52553255508c279642307260e315"
+  },
+  {
+    "text": "Les oiseaux chantent dans les arbres.",
+    "rate": 54,
+    "pitch": 0,
+    "bytes": 34226,
+    "sha256": "1e00dfd7b615a2aa912135cefb723ceae5466454633b95034e03e3062574986e"
+  },
+  {
+    "text": "Les oiseaux chantent dans les arbres.",
+    "rate": -100,
+    "pitch": -100,
+    "bytes": 153194,
+    "sha256": "8772db6fe7e955899b541e92b02bf3d7037e790bbae105578d52dbb74e0e6f54"
+  },
+  {
+    "text": "Les oiseaux chantent dans les arbres.",
+    "rate": 100,
+    "pitch": 100,
+    "bytes": 27166,
+    "sha256": "bd63c816032bc25580d3ce51a46e7fe32a71922466fa8a888406212e6d2b5425"
+  },
+  {
+    "text": "Les oiseaux chantent dans les arbres.",
+    "rate": -70,
+    "pitch": 35,
+    "bytes": 136534,
+    "sha256": "85b95cc832052673b1c842505729c5257c34e3794091209fc3f1e638cf3f289e"
+  },
+  {
+    "text": "Très bien, cœur et sœur — oui !",
+    "rate": 0,
+    "pitch": 0,
+    "bytes": 96840,
+    "sha256": "e0551cc3e1c0b67b61d5fd4834b030ca6c4c46c5aad1bf83663b22bd7b522828"
+  },
+  {
+    "text": "Très bien, cœur et sœur — oui !",
+    "rate": 54,
+    "pitch": 0,
+    "bytes": 34570,
+    "sha256": "a457d136e4fd37ee29f8c376402c06f2bfb52a22c89c2ae80382999acb960156"
+  },
+  {
+    "text": "Très bien, cœur et sœur — oui !",
+    "rate": -100,
+    "pitch": -100,
+    "bytes": 153670,
+    "sha256": "f70ea05196b0ddb5e3830c74cf010c486a811f52367ebe6a94d6ad116da83b98"
+  },
+  {
+    "text": "Très bien, cœur et sœur — oui !",
+    "rate": 100,
+    "pitch": 100,
+    "bytes": 27306,
+    "sha256": "f6b4445f9bf5338af5c45a5bc5388349b4693156e68c51c38aeaab17a633d127"
+  },
+  {
+    "text": "Très bien, cœur et sœur — oui !",
+    "rate": -70,
+    "pitch": 35,
+    "bytes": 137116,
+    "sha256": "af66553a3a060c876d7da699afb5d44ceb0ff6a23924d2f7b834e598b61b1a19"
+  },
+  {
+    "text": "abcdefghijklmnopqrstuvwxyz",
+    "rate": 0,
+    "pitch": 0,
+    "bytes": 111278,
+    "sha256": "c256348968b8a1443c006d09210136b8f52238b5f1fa9467aedfb1c425dddf36"
+  },
+  {
+    "text": "abcdefghijklmnopqrstuvwxyz",
+    "rate": 54,
+    "pitch": 0,
+    "bytes": 39554,
+    "sha256": "437fb11e737d2d9a176f9d13d7c09996304cd29ebd7429b0e5746512def8bf36"
+  },
+  {
+    "text": "abcdefghijklmnopqrstuvwxyz",
+    "rate": -100,
+    "pitch": -100,
+    "bytes": 176154,
+    "sha256": "8bacab244efee623e0c1ed695d217df9a431bb745ecceafc5049b9cfe67e85b4"
+  },
+  {
+    "text": "abcdefghijklmnopqrstuvwxyz",
+    "rate": 100,
+    "pitch": 100,
+    "bytes": 31218,
+    "sha256": "7c920aa9e06a7798b7f11be704135d544681355400401420b1ed8d15e9174a27"
+  },
+  {
+    "text": "abcdefghijklmnopqrstuvwxyz",
+    "rate": -70,
+    "pitch": 35,
+    "bytes": 157204,
+    "sha256": "7a380fc601c1755599e85d0011e8877249326bcaee152e1a8da2bcdae14fc68c"
+  },
+  {
+    "text": "0000 12 17 21 71 81 91 100 1000 999999999999.",
+    "rate": 0,
+    "pitch": 0,
+    "bytes": 637338,
+    "sha256": "05c0bf450ee5769c835b0a5f2ea88d8e3422ea6dd0d0f0d1f199a45c4e14f214"
+  },
+  {
+    "text": "0000 12 17 21 71 81 91 100 1000 999999999999.",
+    "rate": 54,
+    "pitch": 0,
+    "bytes": 225840,
+    "sha256": "3a025a8520332920db033b6ba5edd5f8ef453ae171605f8d473bf1dc227e0cae"
+  },
+  {
+    "text": "0000 12 17 21 71 81 91 100 1000 999999999999.",
+    "rate": -100,
+    "pitch": -100,
+    "bytes": 1011602,
+    "sha256": "7b4bfbc5468d9222490224c9fde326bc23838c5ea7c5dc5e4c473e4b71026479"
+  },
+  {
+    "text": "0000 12 17 21 71 81 91 100 1000 999999999999.",
+    "rate": 100,
+    "pitch": 100,
+    "bytes": 178914,
+    "sha256": "6ed6ecabccef12fdd833ceeeaeb58f9bad1008d5b7ecaae40f84282a39a03c24"
+  },
+  {
+    "text": "0000 12 17 21 71 81 91 100 1000 999999999999.",
+    "rate": -70,
+    "pitch": 35,
+    "bytes": 901568,
+    "sha256": "84c1a20af10624e1f1e3db32cf839572b1d7fd64d33981aae051c4a7cd594edd"
+  },
+  {
+    "text": "a b c ! --- ... ???",
+    "rate": 0,
+    "pitch": 0,
+    "bytes": 164520,
+    "sha256": "16847cf1dc709b11b02c01896036185e4c94e97c5f1ca1fc2c11f42940e57ec8"
+  },
+  {
+    "text": "a b c ! --- ... ???",
+    "rate": 54,
+    "pitch": 0,
+    "bytes": 58520,
+    "sha256": "edfefbd44313f58ad698973d9c258e54d915f92f687d8ae192684bfc70efd436"
+  },
+  {
+    "text": "a b c ! --- ... ???",
+    "rate": -100,
+    "pitch": -100,
+    "bytes": 260856,
+    "sha256": "9b4489fdbabf0733350cdce5558675e293eabb45ff3e76f16af31018d73e5676"
+  },
+  {
+    "text": "a b c ! --- ... ???",
+    "rate": 100,
+    "pitch": 100,
+    "bytes": 46098,
+    "sha256": "22b82f35cd7150e1d57583f8a41f39605ea1e796820a8bd031d5545b24b30885"
+  },
+  {
+    "text": "a b c ! --- ... ???",
+    "rate": -70,
+    "pitch": 35,
+    "bytes": 232592,
+    "sha256": "63a585788cc68b51b51fe770c6d2e97db1487cf390ab7876abcbf075c5aaecfc"
+  }
+]
