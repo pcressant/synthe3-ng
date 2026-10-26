@@ -9,6 +9,7 @@
       packages = each (system: rec {
         synthe3-ng = import ./default.nix { pkgs = nixpkgs.legacyPackages.${system}; };
         default = synthe3-ng;
+        windows-x64 = import ./windows.nix { pkgs = nixpkgs.legacyPackages.${system}; };
       });
       checks = each (system: { package = self.packages.${system}.default; });
       nixosModules.default = import ./nix/module.nix;

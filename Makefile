@@ -37,7 +37,7 @@ build/check_text: tests/check_text.c build/libsynthe3.a src/text.h
 .PHONY: test-core
 test-core: build/check_text
 	./build/check_text
-test: all build/sd_synthe3_ng_historical test-core
+test: all build/sd_synthe3_ng_historical test-core test-api
 	python3 -m unittest discover -s tests -v
 install: all
 	install -Dm755 build/sd_synthe3_ng $(DESTDIR)$(PREFIX)/libexec/synthe3-ng/sd_synthe3_ng
@@ -54,7 +54,36 @@ sanitize: | build
 	./build/fuzz_engine
 	$(CC) $(CPPFLAGS) $(CFLAGS) -O1 -fsanitize=address,undefined -Isrc tests/check_text.c src/text.c -o build/check_text_sanitize
 	./build/check_text_sanitize
+	$(CC) $(CPPFLAGS) $(CFLAGS) -O1 -fsanitize=address,undefined -Isrc tests/check_api.c src/api.c src/engine.c src/dsp.c -lm -pthread -o build/check_api_sanitize
+	./build/check_api_sanitize
 # Requires SPEECHD_ADDRESS pointing to an isolated test server. Silent playback.
 SPEECHD_CLIENT_LIBS ?= -L$(shell $(PKG_CONFIG) --variable=libdir speech-dispatcher) -lspeechd
 build/check_speechd: tests/check_speechd.c | build
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(SPEECHD_CFLAGS) $< $(LDFLAGS) $(SPEECHD_CLIENT_LIBS) -pthread -o $@
+
+# DLL and native shared library use separate outputs: never mix target objects.
+API_SOURCES = src/api.c src/engine.c src/dsp.c
+API_HEADERS = src/api.h src/engine.h src/dsp.h src/text.h src/voice_data.h
+.PHONY: api windows
+api: build/libsynthe3.so build/render_api build/check_api
+build/libsynthe3.so: $(API_SOURCES) $(API_HEADERS) | build
+	$(CC) $(CPPFLAGS) $(CFLAGS) -DS3_API_BUILD -fPIC -fvisibility=hidden -shared $(API_SOURCES) $(LDFLAGS) -lm -o $@
+WINDOWS_CC ?= x86_64-w64-mingw32-gcc
+WINDOWS_LDFLAGS ?= -static -static-libgcc
+windows: build/windows-x64/synthe3.dll build/windows-x64/render_api.exe build/windows-x64/check_api.exe
+build/windows-x64:
+	mkdir -p $@
+build/windows-x64/synthe3.dll build/windows-x64/libsynthe3.dll.a &: $(API_SOURCES) $(API_HEADERS) | build/windows-x64
+	$(WINDOWS_CC) $(CPPFLAGS) $(CFLAGS) -DS3_API_BUILD -shared $(API_SOURCES) $(LDFLAGS) $(WINDOWS_LDFLAGS) -Wl,--exclude-all-symbols,--out-implib,build/windows-x64/libsynthe3.dll.a -lm -o build/windows-x64/synthe3.dll
+
+build/render_api: tools/render_api.c src/text.c src/text.h src/api.h build/libsynthe3.so
+	$(CC) $(CPPFLAGS) $(CFLAGS) -Isrc tools/render_api.c src/text.c -Lbuild -lsynthe3 -Wl,-rpath,'$$ORIGIN' $(LDFLAGS) -o $@
+build/check_api: tests/check_api.c src/api.h build/libsynthe3.so
+	$(CC) $(CPPFLAGS) $(CFLAGS) -Isrc $< -Lbuild -lsynthe3 -Wl,-rpath,'$$ORIGIN' $(LDFLAGS) -pthread -o $@
+build/windows-x64/render_api.exe: tools/render_api.c src/text.c src/text.h src/api.h build/windows-x64/synthe3.dll build/windows-x64/libsynthe3.dll.a
+	$(WINDOWS_CC) $(CPPFLAGS) $(CFLAGS) -Isrc tools/render_api.c src/text.c build/windows-x64/libsynthe3.dll.a $(LDFLAGS) $(WINDOWS_LDFLAGS) -o $@
+build/windows-x64/check_api.exe: tests/check_api.c src/api.h build/windows-x64/synthe3.dll build/windows-x64/libsynthe3.dll.a
+	$(WINDOWS_CC) $(CPPFLAGS) $(CFLAGS) -Isrc $< build/windows-x64/libsynthe3.dll.a $(LDFLAGS) $(WINDOWS_LDFLAGS) -o $@
+.PHONY: test-api
+test-api: api
+	./build/check_api

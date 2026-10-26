@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-26",
+  "phase": 2,
+  "host": "x86_64-linux",
+  "windows_target": "x86_64-w64-mingw32",
+  "compilers": {
+    "linux": "GCC 15.3.0",
+    "windows": "MinGW GCC 15.3.0"
+  },
+  "windows_execution": "Wine 11.0, dedicated temporary prefix",
+  "abi_version": 1,
+  "checks": {
+    "linux_unittest_methods": 28,
+    "linux_api_lifecycle_and_concurrent_cancellation": "passed",
+    "windows_api_lifecycle_and_concurrent_cancellation_under_wine": "passed",
+    "linux_asan_ubsan": "passed",
+    "linux_historical_pcm_exact_matches": 40,
+    "windows_historical_pcm_exact_matches_under_wine": 40,
+    "historical_pcm_cases": 40,
+    "linux_nix_package_build": "passed",
+    "windows_nix_cross_build": "passed"
+  },
+  "windows_dll_imports": [
+    "KERNEL32.dll",
+    "msvcrt.dll"
+  ],
+  "windows_artifacts_sha256": {
+    "synthe3.dll": "8345563bbda01ddcc2e218c4e0a7cf1158e8b33d769f1aa08fdeeefb56612b59",
+    "render_api.exe": "ae267d0a0ea829163133f897f32ee3b41e3c22a9eaf0bb993afc896c8e2eaba9",
+    "check_api.exe": "5b7bea4b6aa5b389627697ce815e993bebca5859631c09f9b566a116339d04df"
+  },
+  "references": "tests/voice_reference.json (unchanged; historical pitch base 6)",
+  "commands": [
+    "nix develop --command make test sanitize",
+    "nix build path:.#windows-x64 --out-link build/windows-result",
+    "nix build path:.#default --no-link",
+    "wine build/windows-result/bin/check_api.exe",
+    "python3 tools/check_api_pcm.py --report /tmp/synthe3-api-linux.json",
+    "python3 tools/check_api_pcm.py --renderer build/windows-result/bin/render_api.exe --runner wine --report /tmp/synthe3-api-windows.json"
+  ],
+  "limits": [
+    "No native Windows machine execution",
+    "No NVDA driver yet",
+    "No audio playback or acoustic latency measurement",
+    "40 reference cases do not prove PCM identity for all inputs"
+  ]
+}

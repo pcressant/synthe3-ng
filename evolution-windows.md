@@ -241,8 +241,9 @@ position, les séquences sans audio et l’invalidation après annulation.
 marques dans `src/text.c` / `src/text.h`, avec livraison par callbacks, et ajoute
 les cibles `core` et `test-core`. Le module Linux utilise cette interface ;
 SSML, protocole, conversion des réglages et livraison du PCM restent dans
-l’adaptateur. Le moteur et le DSP ne changent pas. La couche d’export DLL,
-l’orchestration Windows et le pilote NVDA appartiennent aux étapes suivantes.
+l’adaptateur. Le moteur et le DSP ne changent pas. La phase 2 ajoute l’API C exportée et la construction de la DLL x64 ; voir
+[le contrat et le banc de rendu](docs/windows-api.md). L’orchestration audio
+Windows et le pilote NVDA appartiennent à la phase suivante.
 
 1. **Extraire sans changer le son.** Isoler préparation du texte, fragments et
    marques. Garder l’adaptateur Linux fonctionnel et passer ses tests existants.

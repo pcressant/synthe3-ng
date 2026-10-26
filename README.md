@@ -34,7 +34,9 @@ avec un compilateur C11 et un archiveur, sans les dépendances Speech Dispatcher
 et libxml2. `make test-core` vérifie directement l’interface texte, notamment les
 marques après normalisation et aux frontières des fragments. Ces contrôles sont
 aussi exécutés par `make test` et couverts par `make sanitize`.
-Cette étape ne fournit pas encore de DLL ou de pilote NVDA.
+La phase 2 ajoute une API C et une DLL Windows x64, avec un banc de rendu
+hors NVDA : voir [la construction et le contrat de l’API](docs/windows-api.md).
+Le pilote NVDA reste à développer.
 
 Le [dossier de la réécriture C](docs/reecriture-c.md) regroupe l’inventaire des
 changements, l’architecture, les benchmarks, les procédures de validation et la
