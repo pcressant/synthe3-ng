@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr"><meta charset="utf-8"><title>Synthé3-ng — Michel pour NVDA</title>
+<body>
+<h1>Synthé3-ng — Michel pour NVDA</h1>
+<p>Version 0.4.0. Voix française Michel, moteur natif C, sans serveur externe
+ni fichier audio temporaire. Cible : NVDA 2026.2, processus Windows x64.</p>
+<h2>Installation</h2>
+<ol><li>Ouvrir le fichier <code>synthe3-ng-0.4.0.nvda-addon</code> sur Windows et accepter son installation dans NVDA.</li>
+<li>Redémarrer NVDA lorsque proposé.</li>
+<li>Ouvrir le menu NVDA, Préférences, Paramètres, Parole, puis le choix du synthétiseur.
+Sélectionner <strong>Synthé3-ng — Michel (français)</strong>.</li></ol>
+<p>La voix Michel parle français. Cette extension ne fournit pas de voix pour les autres langues.</p>
+<h2>Réglages</h2>
+<ul><li>Débit : 50 correspond au niveau moteur 4 ; 77 au niveau 13. Les seize niveaux historiques sont conservés.</li>
+<li>Hauteur : 50 correspond au niveau moteur 5, le réglage du port Linux.</li>
+<li>Volume : 100 correspond au gain normal ; 0 coupe le son.</li>
+<li>Inflexion : 0 conserve l’intonation historique. Une valeur positive active la modulation de phrase ;
+20 correspond à une intensité de 1,5 demi-ton, 40 à 3 et 100 à 7,5. Cette option ajoute une passe de calcul.</li></ul>
+<p>La ponctuation et les prononciations de symboles suivent les réglages NVDA.
+L’épellation, les changements de hauteur des majuscules, les pauses de parole et les indices de lecture sont pris en charge.</p>
+<h2>Premier essai</h2>
+<p>Lire quelques lignes, saisir du texte, naviguer rapidement avec les flèches,
+interrompre la parole avec Contrôle, puis lancer une lecture continue et essayer
+la pause et la reprise habituelles de NVDA. Vérifier que les anciens mots ne reviennent pas après une interruption.</p>
+<p>Cette première version a été vérifiée automatiquement avec le moteur réel,
+une sortie audio simulée et la DLL sous Wine. Un essai utilisateur sous NVDA
+sur Windows a confirmé le bon fonctionnement et une très bonne réactivité.
+La latence acoustique n’a pas été mesurée. Les champs de
+compatibilité du manifeste ciblent l’API NVDA 2026.2.</p>
+<h2>En cas de problème</h2>
+<p>Revenir au synthétiseur précédent dans les paramètres Parole. Pour retirer
+l’extension, utiliser le gestionnaire d’extensions de NVDA et redémarrer lorsque demandé.
+En cas d’erreur, conserver le journal NVDA (menu Outils, Visionneuse du journal),
+la version NVDA, la version Windows et le périphérique audio utilisé.</p>
+<h2>Crédits et sources</h2>
+<p>Moteur historique et voix Michel : Michel Morel, CRISCO, université de Caen.
+Portage libre maintenu par Shérab (Sébastien Hinderer), issu du projet
+<a href="https://github.com/acceslibreinfo/synthe3">Synthé3</a>.</p>
+<p>Moteur sous LGPL-2.1-or-later ; DSP, adaptateurs et préparation du texte sous
+GPL-2.0-or-later. Les licences intégrales et la provenance sont fournies dans
+<code>licenses/</code>, <code>LICENSE.md</code> et <code>UPSTREAM.md</code>.
+Le code source correspondant est inclus dans <code>source/</code> dans le paquet.</p>
+</body></html>

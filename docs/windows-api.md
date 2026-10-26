@@ -1,9 +1,9 @@
-# API C et banc Windows — phase 2
+# API C et banc Windows
 
 Le moteur et le DSP disposent d’une API C versionnée, décrite dans
 [`src/api.h`](../src/api.h). Les mêmes sources produisent une bibliothèque Linux
-et une DLL Windows x64. Aucun pilote NVDA ni périphérique audio n’intervient dans
-cette étape.
+et une DLL Windows x64. Le banc décrit ici fonctionne hors NVDA ;
+l’extension installable est décrite dans [nvda.md](nvda.md).
 
 ## Construire
 
@@ -41,25 +41,26 @@ Cette commande produit les fichiers dans `build/windows-x64/`. Le support de C11
 et des atomiques d’entiers sans verrou est requis. La compilation native par
 MSVC n’a pas été mise en place.
 
-## Contrat de l’API, version 1
+## Contrat de l’API, version 2
 
 | Opération | Responsabilité |
 | --- | --- |
-| `s3_api_version` | Retourner la version de l’ABI, actuellement 1 |
+| `s3_api_version` | Retourner la version de l’ABI, actuellement 2 |
 | `s3_api_open` / `s3_api_close` | Initialiser/libérer l’instance unique |
 | `s3_api_request_create` | Allouer un jeton d’annulation pour un énoncé |
 | `s3_api_request_cancel` | Invalider ce jeton depuis un autre thread |
 | `s3_api_request_destroy` | Libérer le jeton après le retour de tous ses utilisateurs |
 | `s3_api_render` | Calculer un fragment Latin-1 et son DSP, en mémoire |
 | `s3_api_sample_at` | Convertir une position de texte en position audio approximative |
+| `s3_api_text_*` | Préparer le texte UTF-8, ses marques uint32 et son mode caractère avec le code commun |
 
 La convention d’appel est C (`__cdecl` sous Windows). Les longueurs et paramètres
 exportés utilisent `uint32_t` et `int32_t`, sans dépendre de la taille de `long`.
 L’API ne crée ni thread, ni fichier, ni sortie audio. Les fonctions internes du
 moteur ne sont pas exportées dans la DLL.
 
-L’instance unique accepte une opération moteur à la fois. Le futur worker NVDA
-appellera `open`, `render`, `sample_at` et `close` en série. Une opération concurrente
+L’instance unique accepte une opération moteur à la fois. Le worker NVDA
+appelle `open`, `render`, `sample_at` et `close` en série. Une opération concurrente
 reçoit `S3_BUSY` ; une utilisation sans moteur ouvert reçoit `S3_STATE`.
 Ne pas combiner cette interface avec des appels directs au moteur/DSP dans une
 même instance de bibliothèque.
@@ -81,23 +82,29 @@ Les positions des marques sont invalidées dès le rendu suivant, même en erreu
 
 Les unités restent celles du cœur : débit/hauteur 0 à 15, modulation −100 à +100,
 volume −100 à +100. Le volume 0 est un gain unitaire, −100 le silence et +100 un
-gain de 2. Le futur pilote devra donc convertir son volume NVDA ; il ne peut pas
-passer directement sa valeur 0 à 100. La hauteur usuelle actuelle est 5 ; les
+gain de 2. Le pilote convertit son volume NVDA en soustrayant 100 : le maximum NVDA
+correspond au gain unitaire du cœur. La hauteur usuelle actuelle est 5 ; les
 références historiques utilisent 6.
 
 `sample_at` s’appuie sur les frontières historiques des mots/diphones, converties
 10 000 → 22 050 Hz, et borne la position à la longueur du PCM. Il ne s’agit pas
 d’un alignement phonétique précis à l’intérieur des mots. Les notifications NVDA
-devront être déclenchées lors du passage audio et invalidées après annulation.
+sont déclenchées lors du passage audio et invalidées après annulation.
 L’API peut seulement interrompre le calcul : elle ne purge aucune sortie audio.
 Une annulation arrivant après le dernier contrôle doit aussi être prise en compte
 par l’adaptateur avant la livraison du résultat.
 
-La préparation UTF-8 et les marques abstraites de `src/text.c` restent communes.
-Le banc les utilise avant d’appeler l’API par fragment. Elles ne sont pas encore
-exposées par une ABI de haut niveau à Python : cette interface sera à intégrer
-avec les commandes structurées lors de la phase 3, sans dupliquer les règles
-Unicode ou le découpage dans le pilote.
+L’ABI 2 ajoute les flux opaques `S3TextStream`, avec création, ajout de texte,
+marques, fin de fragment, mode caractère et destruction. Le flux emprunte le
+jeton d’annulation ; le détruire avant ce jeton, sur le worker. Les callbacks
+reçoivent le Latin-1 normalisé et des paires uint32 `(offset, index)` valables
+pendant l’appel. Ils peuvent appeler `render` et `sample_at`. Ils n’interviennent
+pas aux points de contrôle du moteur. Les limites par flux sont 1 Mio UTF-8 et
+65 536 marques. `finish` permet de poursuivre avec d’autres fragments, notamment
+après un changement de prosodie. Le changement d’épellation exige un tampon vide.
+L’expansion de ponctuation y reste désactivée pour laisser NVDA la préparer.
+Les signatures historiques de rendu sont conservées ; la version publiée par
+`s3_api_version` passe à 2 pour permettre au pilote de refuser une ancienne DLL.
 
 ## Rendre et comparer
 
@@ -153,5 +160,6 @@ pour Linux et Windows ; la variante Linux passe aussi sous ASan/UBSan.
 
 La validation sous Wine porte sur l’ABI et le calcul. Elle ne valide pas les
 pilotes audio Windows, WASAPI, le confort dans NVDA, les changements de
-périphérique, ni la latence au haut-parleur. Le pilote de synthèse NVDA et les
-essais sur Windows réel constituent la suite du travail.
+périphérique, ni la latence au haut-parleur. Le pilote de synthèse NVDA est disponible et un essai utilisateur sous NVDA
+sur Windows a confirmé son bon fonctionnement ; la latence acoustique
+reste à mesurer.

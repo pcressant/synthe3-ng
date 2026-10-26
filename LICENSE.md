@@ -8,4 +8,6 @@ Source : https://github.com/acceslibreinfo/synthe3
 - Module, API C, préparation du texte et DSP (`src/module.c`, `src/api.c`, `src/api.h`, `src/text.c`, `src/text.h`, `src/dsp.c`) : GPL-2.0-or-later, voir [texte intégral](upstream/LICENSE-GPL).
 - Les ressources Michel sont conservées avec leur provenance ; le dépôt original ne leur attribue pas de licence distincte. Aucune nouvelle licence n’est attribuée ici à ces données.
 
+Le pilote NVDA (`nvda/addon/synthDrivers/synthe3_ng/`) est distribué sous GPL-2.0-or-later.
+
 Les nouveaux fichiers de packaging de cette extraction sont distribués sous GPL-2.0-or-later. Les mentions des fichiers d’origine restent applicables. Voir [UPSTREAM.md](UPSTREAM.md).

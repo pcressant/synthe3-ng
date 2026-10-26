@@ -1,10 +1,24 @@
 # Synthé3-ng
 
-Moteur de synthèse vocale française C11, voix Michel, pour Speech Dispatcher et Orca.
+Moteur de synthèse vocale française C11, voix Michel, pour Speech Dispatcher/Orca
+et extension NVDA sous Windows x64.
 
 Issu de [Synthé3 de Michel Morel, maintenu par Shérab (Sébastien Hinderer)](https://github.com/acceslibreinfo/synthe3). Les algorithmes et données historiques sont conservés ; voir [les crédits et la provenance](UPSTREAM.md) et [les licences](LICENSE.md).
 
-## Installation
+## NVDA — Windows x64
+
+La version 0.4.0 fournit une extension pour NVDA 2026.2. Ouvrir le fichier
+`synthe3-ng-0.4.0.nvda-addon` sur Windows, installer, redémarrer NVDA puis choisir
+**Synthé3-ng — Michel (français)** dans les paramètres Parole.
+Voir [le guide NVDA](docs/nvda.md) pour la construction et les essais.
+Un essai utilisateur sous NVDA sur Windows a confirmé le bon fonctionnement
+et une très bonne réactivité. La latence acoustique n’a pas été mesurée.
+
+```sh
+nix build path:.#nvda-addon --out-link build/nvda-result
+```
+
+## Installation Linux
 
 ```sh
 nix build
@@ -36,7 +50,8 @@ marques après normalisation et aux frontières des fragments. Ces contrôles so
 aussi exécutés par `make test` et couverts par `make sanitize`.
 La phase 2 ajoute une API C et une DLL Windows x64, avec un banc de rendu
 hors NVDA : voir [la construction et le contrat de l’API](docs/windows-api.md).
-Le pilote NVDA reste à développer.
+La phase 3 fournit le pilote, la sortie audio NVDA et le paquet installable :
+voir [l’intégration NVDA](docs/nvda.md).
 
 Le [dossier de la réécriture C](docs/reecriture-c.md) regroupe l’inventaire des
 changements, l’architecture, les benchmarks, les procédures de validation et la

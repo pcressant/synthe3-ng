@@ -54,7 +54,7 @@ sanitize: | build
 	./build/fuzz_engine
 	$(CC) $(CPPFLAGS) $(CFLAGS) -O1 -fsanitize=address,undefined -Isrc tests/check_text.c src/text.c -o build/check_text_sanitize
 	./build/check_text_sanitize
-	$(CC) $(CPPFLAGS) $(CFLAGS) -O1 -fsanitize=address,undefined -Isrc tests/check_api.c src/api.c src/engine.c src/dsp.c -lm -pthread -o build/check_api_sanitize
+	$(CC) $(CPPFLAGS) $(CFLAGS) -O1 -fsanitize=address,undefined -Isrc tests/check_api.c src/api.c src/engine.c src/dsp.c src/text.c -lm -pthread -o build/check_api_sanitize
 	./build/check_api_sanitize
 # Requires SPEECHD_ADDRESS pointing to an isolated test server. Silent playback.
 SPEECHD_CLIENT_LIBS ?= -L$(shell $(PKG_CONFIG) --variable=libdir speech-dispatcher) -lspeechd
@@ -62,7 +62,7 @@ build/check_speechd: tests/check_speechd.c | build
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(SPEECHD_CFLAGS) $< $(LDFLAGS) $(SPEECHD_CLIENT_LIBS) -pthread -o $@
 
 # DLL and native shared library use separate outputs: never mix target objects.
-API_SOURCES = src/api.c src/engine.c src/dsp.c
+API_SOURCES = src/api.c src/engine.c src/dsp.c src/text.c
 API_HEADERS = src/api.h src/engine.h src/dsp.h src/text.h src/voice_data.h
 .PHONY: api windows
 api: build/libsynthe3.so build/render_api build/check_api
@@ -87,3 +87,8 @@ build/windows-x64/check_api.exe: tests/check_api.c src/api.h build/windows-x64/s
 .PHONY: test-api
 test-api: api
 	./build/check_api
+
+.PHONY: nvda-addon
+NVDA_DLL ?= build/windows-x64/synthe3.dll
+nvda-addon:
+	python3 tools/build_nvda_addon.py --dll $(NVDA_DLL)

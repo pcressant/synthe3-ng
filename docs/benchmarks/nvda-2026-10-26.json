@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-26",
+  "version": "0.4.0",
+  "phase": 3,
+  "abi_version": 2,
+  "target": "NVDA 2026.2 API, Windows x64",
+  "checks": {
+    "linux_unittest_methods": 50,
+    "nvda_specific_unittest_methods": 22,
+    "real_engine_with_simulated_nvda_audio": "passed",
+    "late_feed_after_cancel": "passed",
+    "queued_callback_invalidation": "passed",
+    "pause_and_resume_during_playback": "passed",
+    "nvda_cancel_restart_cycles": 30,
+    "settings_failure_cleanup": "passed",
+    "linux_asan_ubsan": "passed",
+    "windows_abi2_under_wine_11": "passed",
+    "linux_historical_pcm_matches": 40,
+    "windows_historical_pcm_matches_under_wine": 40,
+    "historical_pcm_cases": 40,
+    "nvda_2026_2_manifest_schema_with_configobj": "passed",
+    "addon_layout_source_licenses_and_reproducibility": "passed",
+    "source_inclusion_under_nix_build_directory": "passed"
+  },
+  "commands": [
+    "nix develop --command make test",
+    "nix develop --command make sanitize",
+    "nix build path:.#nvda-addon --out-link build/nvda-result",
+    "wine build/windows-result/bin/check_api.exe",
+    "python3 tools/check_api_pcm.py --renderer build/windows-result/bin/render_api.exe --runner wine"
+  ],
+  "limits": [
+    "NVDA host services and audio are substituted in Python tests",
+    "No Windows acoustic latency measurement",
+    "Only French Michel, x64 DLL, NVDA 2026.2 API declared"
+  ],
+  "user_validation": {
+    "platform": "NVDA on Windows",
+    "result": "User reports correct operation and very good responsiveness",
+    "nvda_version": null,
+    "audio_device": null,
+    "acoustic_latency_measured": false
+  }
+}

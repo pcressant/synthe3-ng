@@ -16,7 +16,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define S3_ABI_VERSION 1u
+#define S3_ABI_VERSION 2u
 #define S3_OK 0
 #define S3_CANCELLED 1
 #define S3_INVALID -1
@@ -50,6 +50,26 @@ S3_API int32_t S3_CALL s3_api_render(S3Request *, const char *, uint32_t length,
  * converted to output samples and clamped. Invalidated by the next render/close.
  * Offset counts Latin-1 bytes in that fragment, not Unicode code points. */
 S3_API int32_t S3_CALL s3_api_sample_at(uint32_t byte_offset, uint32_t *sample);
+/* ABI 2: shared UTF-8 preparation. Callbacks occur only at fragment/mark
+ * boundaries, never at engine/DSP cancellation checkpoints. Offsets below are
+ * normalized Latin-1 bytes. Records are two uint32_t fields (8 bytes).
+ * The callback borrows text/marks until it returns and may call render/sample_at.
+ * It returns 0, CANCELLED, or a negative error. No recursive text calls. */
+typedef struct S3PreparedMark { uint32_t offset, index; } S3PreparedMark;
+typedef int32_t (S3_CALL *S3PreparedCallback)(void *, const char *, uint32_t,
+    const S3PreparedMark *, uint32_t);
+typedef struct S3TextStream S3TextStream;
+S3_API S3TextStream *S3_CALL s3_api_text_create(S3Request *, S3PreparedCallback, void *);
+S3_API int32_t S3_CALL s3_api_text_append(S3TextStream *, const char *, uint32_t length);
+S3_API int32_t S3_CALL s3_api_text_mark(S3TextStream *, uint32_t index);
+/* finish flushes pending text but allows subsequent appends (e.g. prosody).
+ * Change spelling only with an empty buffer, after finish. Punctuation expansion
+ * is disabled: NVDA performs its own symbol pronunciation. */
+S3_API int32_t S3_CALL s3_api_text_finish(S3TextStream *);
+S3_API int32_t S3_CALL s3_api_text_spelling(S3TextStream *, int32_t enabled);
+S3_API void S3_CALL s3_api_text_destroy(S3TextStream *);
+/* A stream borrows its request. Destroy stream before request, on the worker.
+ * Limits per stream: 1 MiB UTF-8 and 65536 marks. Cancellation is native. */
 #ifdef __cplusplus
 }
 #endif

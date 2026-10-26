@@ -37,6 +37,68 @@ static THREAD_RETURN render_thread(void *unused) {
     assert(result == S3_CANCELLED && !pcm && !count);
     THREAD_DONE;
 }
+static char normalized[1024];
+static uint32_t prepared_bytes, prepared_indices, prepared_offset, prepared_index;
+static int32_t prepared_result;
+static int32_t S3_CALL prepared(void *context, const char *text, uint32_t length,
+    const S3PreparedMark *marks, uint32_t count) {
+    (void)context;
+    assert(prepared_bytes + length < sizeof(normalized));
+    for (uint32_t i = 0; i < count; i++) {
+        assert(marks[i].offset <= length);
+        prepared_offset = prepared_bytes + marks[i].offset;
+        prepared_index = marks[i].index;
+        prepared_indices++;
+    }
+    memcpy(normalized + prepared_bytes, text, length);
+    prepared_bytes += length;
+    normalized[prepared_bytes] = 0;
+    return prepared_result;
+}
+static void check_preparation(void) {
+    S3Request *r = s3_api_request_create();
+    assert(r);
+    assert(!s3_api_text_create(NULL, prepared, NULL));
+    S3TextStream *stream = s3_api_text_create(r, prepared, NULL);
+    assert(stream);
+    assert(!s3_api_text_append(stream, "cœur", (uint32_t)strlen("cœur")));
+    assert(!s3_api_text_mark(stream, UINT32_MAX));
+    assert(s3_api_text_spelling(stream, 1) == S3_STATE);
+    assert(!s3_api_text_append(stream, " et sœur", (uint32_t)strlen(" et sœur")));
+    assert(!s3_api_text_finish(stream));
+    assert(!strcmp(normalized, "coeur et soeur"));
+    assert(prepared_indices == 1 && prepared_offset == 5 && prepared_index == UINT32_MAX);
+    prepared_bytes = prepared_indices = 0;
+    assert(!s3_api_text_spelling(stream, 1));
+    assert(!s3_api_text_append(stream, "a!", 2));
+    assert(!s3_api_text_finish(stream));
+    assert(!strcmp(normalized, "a, point d'exclamation"));
+    s3_api_text_destroy(stream);
+    stream = s3_api_text_create(r, prepared, NULL);
+    assert(stream);
+    s3_api_request_cancel(r);
+    assert(s3_api_text_append(stream, "test", 4) == S3_CANCELLED);
+    assert(s3_api_text_mark(stream, 1) == S3_CANCELLED);
+    assert(s3_api_text_finish(stream) == S3_CANCELLED);
+    s3_api_text_destroy(stream);
+    s3_api_request_destroy(r);
+    r = s3_api_request_create();
+    stream = s3_api_text_create(r, prepared, NULL);
+    assert(stream);
+    /* Reject size before dereferencing this deliberately tiny input. */
+    assert(s3_api_text_append(stream, "x", 1024 * 1024 + 1) == S3_INVALID);
+    s3_api_text_destroy(stream);
+    prepared_bytes = 0;
+    prepared_result = S3_CANCELLED;
+    stream = s3_api_text_create(r, prepared, NULL);
+    assert(stream);
+    assert(!s3_api_text_append(stream, "test", 4));
+    assert(s3_api_text_finish(stream) == S3_CANCELLED);
+    assert(s3_api_text_append(stream, "x", 1) == S3_CANCELLED);
+    s3_api_text_destroy(stream);
+    s3_api_request_destroy(r);
+    s3_api_text_destroy(NULL);
+}
 int main(void) {
     assert(s3_api_version() == S3_ABI_VERSION);
     assert(s3_api_close() == S3_STATE);
@@ -101,6 +163,7 @@ int main(void) {
     assert(s3_api_sample_at(0, &pos) == S3_STATE);
     assert(s3_api_open() == S3_OK);
     assert(s3_api_close() == S3_OK);
-    puts("API lifecycle, validation, cancellation and reuse: OK");
+    check_preparation();
+    puts("API lifecycle, preparation, validation, cancellation and reuse: OK");
     return 0;
 }

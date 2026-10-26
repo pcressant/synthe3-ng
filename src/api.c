@@ -2,6 +2,8 @@
 #include "api.h"
 #include "engine.h"
 #include "dsp.h"
+#include "text.h"
+#include <stdio.h>
 #include <math.h>
 #include <stdatomic.h>
 #include <stdlib.h>
@@ -115,4 +117,98 @@ int32_t S3_CALL s3_api_sample_at(uint32_t offset, uint32_t *sample) {
     }
     atomic_store(&state, 1);
     return status;
+}
+
+struct S3TextStream {
+    S3Text text;
+    S3Request *request;
+    S3PreparedCallback callback;
+    void *context;
+    S3PreparedMark *marks;
+    size_t capacity;
+    uint32_t bytes, mark_count;
+};
+_Static_assert(sizeof(S3PreparedMark) == 8, "Prepared mark ABI");
+static int text_cancelled(void *context) {
+    S3TextStream *stream = context;
+    return atomic_load_explicit(&stream->request->cancelled, memory_order_relaxed);
+}
+static int prepared_emit(void *context, const char *text, const S3Mark *mark, size_t bytes) {
+    S3TextStream *stream = context;
+    if (text_cancelled(stream)) return S3_CANCELLED;
+    size_t n = 0;
+    for (const S3Mark *m = mark; m && m->offset <= bytes; m = m->next) n++;
+    if (n > stream->capacity) {
+        void *p = realloc(stream->marks, n * sizeof(*stream->marks));
+        if (!p) return S3_NOMEM;
+        stream->marks = p;
+        stream->capacity = n;
+    }
+    for (size_t i = 0; i < n; i++, mark = mark->next) {
+        stream->marks[i].offset = (uint32_t)mark->offset;
+        stream->marks[i].index = (uint32_t)strtoul(mark->name, NULL, 10);
+    }
+    return stream->callback(stream->context, text, (uint32_t)bytes, stream->marks, (uint32_t)n);
+}
+static int prepared_mark(void *context, const S3Mark *mark) {
+    S3TextStream *stream = context;
+    if (text_cancelled(stream)) return S3_CANCELLED;
+    S3PreparedMark prepared = {0, (uint32_t)strtoul(mark->name, NULL, 10)};
+    return stream->callback(stream->context, "", 0, &prepared, 1);
+}
+S3TextStream *S3_CALL s3_api_text_create(S3Request *request, S3PreparedCallback callback, void *context) {
+    if (!request || !callback) return NULL;
+    S3TextStream *stream = calloc(1, sizeof(*stream));
+    if (!stream) return NULL;
+    stream->request = request;
+    stream->callback = callback;
+    stream->context = context;
+    stream->text.context = stream;
+    stream->text.emit = prepared_emit;
+    stream->text.emit_mark = prepared_mark;
+    stream->text.stop = text_cancelled;
+    return stream;
+}
+int32_t S3_CALL s3_api_text_append(S3TextStream *stream, const char *text, uint32_t length) {
+    if (!stream || !text) return S3_INVALID;
+    if (text_cancelled(stream)) return stream->text.status = S3_CANCELLED;
+    if (stream->text.status) return stream->text.status;
+    if (length > 1024 * 1024 - stream->bytes || memchr(text, 0, length))
+        return stream->text.status = S3_INVALID;
+    char *copy = malloc((size_t)length + 1);
+    if (!copy) return stream->text.status = S3_NOMEM;
+    memcpy(copy, text, length);
+    copy[length] = 0;
+    stream->bytes += length;
+    int32_t status = s3_text_append(&stream->text, copy);
+    free(copy);
+    return status;
+}
+int32_t S3_CALL s3_api_text_mark(S3TextStream *stream, uint32_t index) {
+    if (!stream) return S3_INVALID;
+    if (text_cancelled(stream)) return stream->text.status = S3_CANCELLED;
+    if (stream->text.status) return stream->text.status;
+    if (stream->mark_count >= 65536) return stream->text.status = S3_INVALID;
+    char name[16];
+    snprintf(name, sizeof(name), "%lu", (unsigned long)index);
+    stream->mark_count++;
+    return s3_text_mark(&stream->text, name);
+}
+int32_t S3_CALL s3_api_text_finish(S3TextStream *stream) {
+    if (!stream) return S3_INVALID;
+    if (text_cancelled(stream)) return stream->text.status = S3_CANCELLED;
+    return s3_text_finish(&stream->text);
+}
+int32_t S3_CALL s3_api_text_spelling(S3TextStream *stream, int32_t enabled) {
+    if (!stream || (enabled != 0 && enabled != 1)) return S3_INVALID;
+    if (stream->text.status) return stream->text.status;
+    if (stream->text.n || stream->text.marks) return S3_STATE;
+    stream->text.spelling = enabled;
+    return S3_OK;
+}
+void S3_CALL s3_api_text_destroy(S3TextStream *stream) {
+    if (!stream) return;
+    s3_text_clear(&stream->text);
+    free(stream->marks);
+    free(stream);
 }

@@ -242,8 +242,10 @@ marques dans `src/text.c` / `src/text.h`, avec livraison par callbacks, et ajout
 les cibles `core` et `test-core`. Le module Linux utilise cette interface ;
 SSML, protocole, conversion des réglages et livraison du PCM restent dans
 l’adaptateur. Le moteur et le DSP ne changent pas. La phase 2 ajoute l’API C exportée et la construction de la DLL x64 ; voir
-[le contrat et le banc de rendu](docs/windows-api.md). L’orchestration audio
-Windows et le pilote NVDA appartiennent à la phase suivante.
+[le contrat et le banc de rendu](docs/windows-api.md). La phase 3 fournit désormais l’orchestration audio, le pilote NVDA et
+un `.nvda-addon` installable : voir [le guide NVDA](docs/nvda.md). Un essai utilisateur
+en session NVDA sur Windows a confirmé le bon fonctionnement et une très bonne
+réactivité, sans mesure de latence acoustique.
 
 1. **Extraire sans changer le son.** Isoler préparation du texte, fragments et
    marques. Garder l’adaptateur Linux fonctionnel et passer ses tests existants.
