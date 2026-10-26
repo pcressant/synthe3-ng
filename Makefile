@@ -34,9 +34,13 @@ build/sd_synthe3_ng_historical: src/module.c src/engine.c src/dsp.c src/text.c s
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(SPEECHD_CFLAGS) $(XML_CFLAGS) -Isrc/compat -DS3_OUTPUT_GAIN_DB=0 -DS3_PITCH_BASE=6 src/module.c src/engine.c src/dsp.c src/text.c $(LDFLAGS) $(SPEECHD_LIBS) $(XML_LIBS) -lm -o $@
 build/check_text: tests/check_text.c build/libsynthe3.a src/text.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) -Isrc $< build/libsynthe3.a $(LDFLAGS) -o $@
+# White-box: includes engine.c to inspect the phonemes.
+build/check_engine: tests/check_engine.c src/engine.c src/engine.h src/voice_data.h | build
+	$(CC) $(CPPFLAGS) $(CFLAGS) -Isrc $< $(LDFLAGS) -lm -o $@
 .PHONY: test-core
-test-core: build/check_text
+test-core: build/check_text build/check_engine
 	./build/check_text
+	./build/check_engine
 test: all build/sd_synthe3_ng_historical test-core test-api
 	python3 -m unittest discover -s tests -v
 install: all
@@ -54,6 +58,8 @@ sanitize: | build
 	./build/fuzz_engine
 	$(CC) $(CPPFLAGS) $(CFLAGS) -O1 -fsanitize=address,undefined -Isrc tests/check_text.c src/text.c -o build/check_text_sanitize
 	./build/check_text_sanitize
+	$(CC) $(CPPFLAGS) $(CFLAGS) -O1 -fsanitize=address,undefined -Isrc tests/check_engine.c -lm -o build/check_engine_sanitize
+	./build/check_engine_sanitize
 	$(CC) $(CPPFLAGS) $(CFLAGS) -O1 -fsanitize=address,undefined -Isrc tests/check_api.c src/api.c src/engine.c src/dsp.c src/text.c -lm -pthread -o build/check_api_sanitize
 	./build/check_api_sanitize
 # Requires SPEECHD_ADDRESS pointing to an isolated test server. Silent playback.

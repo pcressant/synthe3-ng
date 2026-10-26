@@ -335,6 +335,89 @@ static char *tab_getPtArbreRoot(char *ptArbre, unsigned char carac) {
     return tTab + adr;
 }
 
+/* Isolated accented vowels: "e accent aigu" instead of "é aigu", "a accent grave"
+ * instead of "a grave"; "e tréma" instead of "é tréma". The historical tables are
+ * unchanged: only the final rule (TTT) of these word-start trees is replaced,
+ * and its continuation, which names the diacritic, is kept. */
+static const struct {
+    unsigned char latin1;
+    char letter, accent; // accent: insert "accent" before the diacritic
+} isolated_vowels[] = {
+    {0xE0, AA, 1}, {0xE2, AA, 1}, {0xE1, AA, 1}, {0xE8, EE, 1}, {0xEA, EE, 1},
+    {0xEB, EE, 0}, {0xEC, II, 1}, {0xEE, II, 1}, {0xED, II, 1}, {0xF2, OO, 1},
+    {0xF4, OO, 1}, {0xF3, OO, 1}, {0xF9, UU, 1}, {0xFB, UU, 1}, {0xFA, UU, 1},
+};
+static struct {
+    const char *rule; // body of the replaced rule in tTab
+    char retract;     // phoneme already written by a shared prefix rule, or -1
+    char body[12];
+} rule_overrides[16];
+static size_t rule_override_count;
+
+/* Body (after the condition) of the TTT rule of a tree, or NULL. */
+static const char *tab_ruleTTT(const char *tree) {
+    for (int rule = 0; rule < 64; rule++) {
+        char condition = *tree++;
+        const char *body = tree;
+        while (*tree < PG)
+            tree++;
+        if (condition == TTT)
+            return body;
+        tree += 3;
+    }
+    return NULL;
+}
+
+static void add_override(const char *rule, int skip, char retract, char letter, int accent) {
+    static const char name[] = {PL, AA, KK, SS, AN};
+    char *p = rule_overrides[rule_override_count].body;
+    /* The continuation must start with a pause before the diacritic name. */
+    const char *next = tab_getPtArbre((char *)rule + skip + 1);
+    if (rule[skip] != RB || next[0] != TTT || next[1] != PL)
+        return;
+    if (letter == EE) {
+        *p++ = EU; // letter name "e"
+        *p++ = EU;
+    } else
+        *p++ = letter;
+    if (accent)
+        for (size_t i = 0; i < sizeof name; i++)
+            *p++ = name[i];
+    memcpy(p, rule + skip, 3);
+    rule_overrides[rule_override_count].rule = rule;
+    rule_overrides[rule_override_count++].retract = retract;
+}
+
+static void init_rule_overrides(void) {
+    rule_override_count = 0;
+    for (size_t i = 0; i < sizeof isolated_vowels / sizeof *isolated_vowels; i++) {
+        const char *rule = tab_ruleTTT(tab_getPtTabDeb(tab_tWin(isolated_vowels[i].latin1)));
+        if (rule && rule[0] == isolated_vowels[i].letter)
+            add_override(rule, 1, -1, isolated_vowels[i].letter, isolated_vowels[i].accent);
+    }
+    /* "é" is written by the shared rule of every word starting with é; the
+     * isolated case is the TTT rule of its continuation tree. */
+    const char *rule = tab_ruleTTT(tab_getPtTabDeb(tab_tWin(0xE9)));
+    if (rule && rule[0] == EE && rule[1] == RB) {
+        rule = tab_ruleTTT(tab_getPtArbre((char *)rule + 2));
+        if (rule)
+            add_override(rule, 0, EE, EE, 1);
+    }
+}
+
+static char *rule_override(char *rule) {
+    for (size_t i = 0; i < rule_override_count; i++)
+        if (rule == rule_overrides[i].rule) {
+            if (rule_overrides[i].retract >= 0) {
+                if (!iEcr || texteEcr[iEcr - 1] != rule_overrides[i].retract + 65)
+                    return rule;
+                iEcr--;
+            }
+            return rule_overrides[i].body;
+        }
+    return rule;
+}
+
 static char *tab__Huit1() { return tTab + a_Huit1; }
 
 static char *tab__Dix1() { return tTab + a_Dix1; }
@@ -444,6 +527,7 @@ static void graphemePhoneme(char *texte, char *texPhon) {
             ptArbre += 2;
         }
         while (true) {     // traite la règle validée et prépare l'adresse suivante
+            ptArbre = rule_override(ptArbre);
             while (true) { // lit les phonèmes et les écrit
                 cArbre = *ptArbre++;
                 if (cArbre >= PG)
@@ -1134,6 +1218,7 @@ void s3_init(void) {
     aXChif = readShort(tTab + 56);
     lgTab = readShort(tTab + 58);
     FOIS = (unsigned char)tTab[60];
+    init_rule_overrides();
 }
 
 static int render_core(const char *latin1, int rate, int pitch, int (*stop)(void), const int16_t **samples,
