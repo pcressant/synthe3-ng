@@ -1,4 +1,14 @@
-**/build/
+# Compilation and release artifacts
+build/
+/dist/
+/nvda/addon/synthDrivers/synthe3_ng/bin/
+
+# Nix output links
 /result
+/result-*
+
+# Python caches and local environments
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
+.venv/

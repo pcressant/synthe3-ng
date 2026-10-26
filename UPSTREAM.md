@@ -4,6 +4,9 @@ Source : https://github.com/acceslibreinfo/synthe3
 Révision : 8e601dc1895d71c0150c39ee1d10f2e04a291fe8
 Auteur du moteur : Michel Morel, CRISCO, université de Caen.
 Maintenance du portage libre : Shérab (Sébastien Hinderer).
+Licence du projet amont : GNU GPL version 2 (GPLv2), voir
+[LICENSE.md](LICENSE.md). Les mentions LGPL propres aux fichiers moteur
+historiques sont conservées.
 
 `src/engine.c` est le portage C de SynTrans.cpp, SynParle.cpp, SynVoix.cpp et
 SynCalcul.cpp. Les algorithmes et la mention de copyright historique sont
