@@ -21,6 +21,21 @@ Pour NixOS et Arch Linux, voir [le guide de packaging](docs/packaging.md).
 
 ## Architecture et améliorations
 
+La branche `nvda` prépare le partage du code entre Linux et une future extension
+NVDA ; voir [la proposition Windows](evolution-windows.md). La première étape
+isole la normalisation UTF-8 → Latin-1, les fragments de 240 octets et les marques
+dans `src/text.c` et `src/text.h`. Cette couche utilise des callbacks de livraison
+et d’annulation ; elle ne dépend ni de Speech Dispatcher, ni de libxml2, ni d’une
+sortie audio. Le protocole, le SSML, les réglages Speech Dispatcher et la livraison
+audio restent dans `src/module.c`. Le moteur et le DSP sont inchangés.
+
+`make core` construit `build/libsynthe3.a` (moteur, DSP et préparation du texte)
+avec un compilateur C11 et un archiveur, sans les dépendances Speech Dispatcher
+et libxml2. `make test-core` vérifie directement l’interface texte, notamment les
+marques après normalisation et aux frontières des fragments. Ces contrôles sont
+aussi exécutés par `make test` et couverts par `make sanitize`.
+Cette étape ne fournit pas encore de DLL ou de pilote NVDA.
+
 Le [dossier de la réécriture C](docs/reecriture-c.md) regroupe l’inventaire des
 changements, l’architecture, les benchmarks, les procédures de validation et la
 migration. Les [mesures enregistrées](docs/benchmarks/2026-10-25.json) distinguent

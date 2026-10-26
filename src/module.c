@@ -2,6 +2,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "dsp.h"
 #include "engine.h"
+#include "text.h"
 #include <ctype.h>
 #include <libxml/parser.h>
 #include <math.h>
@@ -26,48 +27,6 @@ static int active, stopped, paused, audio_server, closing;
 static struct timespec next_input;
 static SPDVoice voice = {"Synthé3-ng", "fr", "none"};
 static SPDVoice *voices[] = {&voice, NULL};
-static const struct {
-    unsigned code;
-    const char *name;
-} punctuation[] = {{'.', "point"},
-                   {',', "virgule"},
-                   {';', "point virgule"},
-                   {':', "deux points"},
-                   {'!', "point d'exclamation"},
-                   {'?', "point d'interrogation"},
-                   {'/', "barre oblique"},
-                   {'\\', "barre oblique inverse"},
-                   {'-', "tiret"},
-                   {'_', "souligné"},
-                   {'+', "plus"},
-                   {'=', "égal"},
-                   {'*', "astérisque"},
-                   {'#', "dièse"},
-                   {'@', "arobase"},
-                   {'&', "et commercial"},
-                   {'%', "pour cent"},
-                   {'(', "parenthèse ouvrante"},
-                   {')', "parenthèse fermante"},
-                   {'[', "crochet ouvrant"},
-                   {']', "crochet fermant"},
-                   {'{', "accolade ouvrante"},
-                   {'}', "accolade fermante"},
-                   {'<', "inférieur"},
-                   {'>', "supérieur"},
-                   {'"', "guillemet"},
-                   {'\'', "apostrophe"},
-                   {'|', "barre verticale"},
-                   {'~', "tilde"},
-                   {'^', "accent circonflexe"},
-                   {'`', "accent grave"},
-                   {'$', "dollar"},
-                   {0x20ac, "euro"}};
-static const char *punct_name(unsigned c) {
-    for (size_t i = 0; i < sizeof(punctuation) / sizeof(*punctuation); i++)
-        if (punctuation[i].code == c)
-            return punctuation[i].name;
-    return NULL;
-}
 static int process_input(void) {
     if (!module_process(STDIN_FILENO, 0))
         closing = stopped = 1;
@@ -101,19 +60,14 @@ static int rate_setting(int value) {
     double calibrated = value <= 54 ? value * 80.0 / 54 : 80 + (value - 54) * 20.0 / 46;
     return (int)nearbyint(4 + calibrated * 11 / 100);
 }
-typedef struct Mark {
-    xmlChar *name;
-    size_t offset;
-    struct Mark *next;
-} Mark;
-static void report_mark(const Mark *mark) {
+static void report_mark(const S3Mark *mark) {
     if (stopped)
         return;
     module_report_index_mark((char *)mark->name);
     if (paused && !strncmp((char *)mark->name, "__spd_", 6))
         stopped = 1;
 }
-static int render(const char *text, Mark *mark, size_t bytes) {
+static int render(const char *text, const S3Mark *mark, size_t bytes) {
     const int16_t *raw, *pcm;
     size_t n, count;
     if (stopped)
@@ -153,172 +107,41 @@ static int render(const char *text, Mark *mark, size_t bytes) {
     }
     return stopped ? 1 : 0;
 }
-/* Incremental Latin-1 normalization, bounded by the historical 240-byte chunks. */
-typedef struct {
-    char text[241];
-    size_t n;
-    int status;
-    Mark *marks, *last_mark;
-} Chunk;
-static void clear_marks(Chunk *c) {
-    while (c->marks) {
-        Mark *mark = c->marks;
-        c->marks = mark->next;
-        xmlFree(mark->name);
-        free(mark);
-    }
-    c->last_mark = NULL;
+/* Transport callbacks keep the shared text layer independent of Speech Dispatcher. */
+static int emit_text(void *context, const char *value, const S3Mark *marks, size_t bytes) {
+    (void)context;
+    return render(value, marks, bytes);
 }
-static void flush(Chunk *c, size_t n) {
-    char save = c->text[n];
-    c->text[n] = 0;
-    int nonspace = 0;
-    for (size_t i = 0; i < n; i++)
-        if (!isspace((unsigned char)c->text[i]))
-            nonspace = 1;
-    if (nonspace && !c->status)
-        c->status = render(c->text, c->marks, n);
-    while (c->marks && c->marks->offset <= n) {
-        Mark *mark = c->marks;
-        if (!nonspace && !c->status) {
-            report_mark(mark);
-            if (stopped)
-                c->status = 1;
-        }
-        c->marks = mark->next;
-        xmlFree(mark->name);
-        free(mark);
-    }
-    if (!c->marks)
-        c->last_mark = NULL;
-    for (Mark *mark = c->marks; mark; mark = mark->next)
-        mark->offset -= n;
-    c->text[n] = save;
-    memmove(c->text, c->text + n, c->n - n);
-    c->n -= n;
+static int emit_mark(void *context, const S3Mark *mark) {
+    (void)context;
+    report_mark(mark);
+    return stopped ? 1 : 0;
 }
-static void byte(Chunk *c, char ch) {
-    if (c->status)
-        return;
-    if (c->n == 240) {
-        size_t end = 240;
-        for (size_t i = 240; i > 0; i--)
-            if (isspace((unsigned char)c->text[i - 1])) {
-                end = i;
-                break;
-            }
-        flush(c, end);
-    }
-    c->text[c->n++] = ch;
+static int text_stop(void *context) {
+    (void)context;
+    return poll_input();
 }
-static unsigned decode(const unsigned char **p) {
-    unsigned c = *(*p)++;
-    if (c < 128)
-        return c;
-    int n = c >= 0xf0 && c <= 0xf4 ? 3 : c >= 0xe0 ? 2 : c >= 0xc2 ? 1 : 0;
-    if (!n)
-        return '?';
-    unsigned code = c & ((1u << (6 - n)) - 1);
-    for (int i = 0; i < n; i++) {
-        if ((**p & 0xc0) != 0x80)
-            return '?';
-        code = (code << 6) | (*(*p)++ & 63);
-    }
-    return code;
-}
-static void normalized(Chunk *c, unsigned code) {
-    switch (code) {
-    case 0x153:
-        byte(c, 'o');
-        byte(c, 'e');
-        return;
-    case 0x152:
-        byte(c, 'O');
-        byte(c, 'E');
-        return;
-    case 0x2019:
-        code = '\'';
-        break;
-    case 0x201c:
-    case 0x201d:
-        code = '"';
-        break;
-    case 0x2013:
-    case 0x2014:
-        code = '-';
-        break;
-    case 0:
-        code = ' ';
-        break;
-    }
-    byte(c, code <= 255 ? (char)code : '?');
-}
-static void literal(Chunk *c, const char *s) {
-    const unsigned char *p = (const unsigned char *)s;
-    while (*p && !c->status)
-        normalized(c, decode(&p));
-}
-static int append_text(Chunk *chunk, const char *s) {
-    Chunk *c = chunk;
-    const unsigned char *p = (const unsigned char *)s;
-    int first = 1;
-    unsigned checkpoint = 0;
-    while (*p && !c->status) {
-        if (!(checkpoint++ & 1023) && poll_input()) {
-            c->status = 1;
-            break;
-        }
-        unsigned code = decode(&p);
-        const char *name = punct_name(code);
-        if (current.spelling) {
-            if (!first)
-                literal(c, ", ");
-            if (name)
-                literal(c, name);
-            else if (code <= 255 && isspace((unsigned char)code))
-                literal(c, "espace");
-            else
-                normalized(c, code);
-        } else if (name && (current.punctuation == 2 || (current.punctuation == 1 && code < 128 &&
-                                                         strchr(".,;:!?", (int)code)))) {
-            byte(c, ' ');
-            literal(c, name);
-            byte(c, ' ');
-        } else
-            normalized(c, code);
-        first = 0;
-    }
-    return c->status;
+static S3Text new_text(void) {
+    return (S3Text){.punctuation = current.punctuation, .spelling = current.spelling,
+                    .emit = emit_text, .emit_mark = emit_mark, .stop = text_stop};
 }
 static int text(const char *s) {
-    Chunk c = {0};
-    append_text(&c, s);
-    flush(&c, c.n);
-    clear_marks(&c);
+    S3Text c = new_text();
+    s3_text_append(&c, s);
+    s3_text_finish(&c);
+    s3_text_clear(&c);
     return c.status;
 }
-static int walk(xmlNode *node, Chunk *chunk) {
+static int walk(xmlNode *node, S3Text *chunk) {
     for (; node && !poll_input(); node = node->next) {
         int status = 0;
         if (node->type == XML_TEXT_NODE || node->type == XML_CDATA_SECTION_NODE)
-            status = append_text(chunk, (char *)node->content);
+            status = s3_text_append(chunk, (char *)node->content);
         else if (node->type == XML_ELEMENT_NODE) {
             if (!xmlStrcmp(node->name, BAD_CAST "mark")) {
                 xmlChar *name = xmlGetProp(node, BAD_CAST "name");
                 if (name && *name && !strpbrk((char *)name, "\r\n")) {
-                    Mark *mark = calloc(1, sizeof(*mark));
-                    if (!mark) {
-                        xmlFree(name);
-                        return chunk->status = -1;
-                    }
-                    mark->name = name;
-                    mark->offset = chunk->n;
-                    if (chunk->last_mark)
-                        chunk->last_mark->next = mark;
-                    else
-                        chunk->marks = mark;
-                    chunk->last_mark = mark;
-                    name = NULL;
+                    status = s3_text_mark(chunk, (char *)name);
                 }
                 xmlFree(name);
             } else
@@ -460,8 +283,8 @@ void module_speak_sync(const char *data, size_t bytes, SPDMessageType type) {
             if (!strcmp(data, keys[i][0]))
                 value = keys[i][1];
         const unsigned char *p = (const unsigned char *)value;
-        unsigned code = decode(&p);
-        const char *name = !*p ? punct_name(code) : NULL;
+        unsigned code = s3_text_decode(&p);
+        const char *name = !*p ? s3_punct_name(code) : NULL;
         status = text(name ? name : value);
     } else if (!memchr(data, '<', bytes) && !memchr(data, '&', bytes)) {
         status = text(data);
@@ -487,13 +310,13 @@ void module_speak_sync(const char *data, size_t bytes, SPDMessageType type) {
         if (stopped)
             status = 1;
         else if (!error && doc && !doc->intSubset && !doc->extSubset) {
-            Chunk chunk = {0};
+            S3Text chunk = new_text();
             status = walk(xmlDocGetRootElement(doc)->children, &chunk);
             if (!status)
-                flush(&chunk, chunk.n);
+                s3_text_finish(&chunk);
             if (!status)
                 status = chunk.status;
-            clear_marks(&chunk);
+            s3_text_clear(&chunk);
         }
         else {
             /* Malformed SSML: strip tags; retain ordinary text. */
