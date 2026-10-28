@@ -2,7 +2,7 @@
 { pkgs ? import <nixpkgs> { } }:
 pkgs.stdenv.mkDerivation {
   pname = "synthe3-ng";
-  version = "0.3.0";
+  version = "0.5.0";
   src = pkgs.lib.cleanSourceWith {
     src = ./.;
     filter = path: type: !(builtins.elem (baseNameOf path) [ ".git" "build" "__pycache__" "result" ]);

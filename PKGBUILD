@@ -2,7 +2,7 @@
 # Recette locale : extraire/copier les sources à côté de ce PKGBUILD, puis makepkg -si.
 # Pour l'AUR, remplacer la source locale par l'archive d'une version publiée (voir docs/packaging.md).
 pkgname=synthe3-ng
-pkgver=0.3.0
+pkgver=0.5.0
 pkgrel=1
 pkgdesc='Moteur vocal français Michel en C pour Speech Dispatcher'
 url='https://github.com/pcressant/synthe3-ng'

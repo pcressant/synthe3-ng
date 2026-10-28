@@ -4,7 +4,7 @@
 let cross = pkgs.pkgsCross.mingwW64;
 in cross.stdenv.mkDerivation {
   pname = "synthe3-ng-windows-x64";
-  version = "0.4.0";
+  version = "0.5.0";
   src = pkgs.lib.cleanSourceWith {
     src = ./.;
     filter = path: type: !(builtins.elem (baseNameOf path) [ ".git" "build" "__pycache__" "result" ]);

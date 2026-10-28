@@ -2,8 +2,6 @@
 import importlib.util
 from pathlib import Path
 import struct
-import shutil
-from unittest.mock import patch
 import tempfile
 import unittest
 import zipfile
@@ -25,7 +23,7 @@ def pe_fixture():
 
 
 class PackageTests(unittest.TestCase):
-    def test_archive_layout_source_and_reproducibility(self):
+    def test_minimal_archive_layout_and_reproducibility(self):
         with tempfile.TemporaryDirectory() as directory:
             directory = Path(directory)
             dll = directory / 'test.dll'
@@ -36,16 +34,16 @@ class PackageTests(unittest.TestCase):
             with zipfile.ZipFile(first) as archive:
                 self.assertIsNone(archive.testzip())
                 names = set(archive.namelist())
-                self.assertTrue({'manifest.ini', 'synthDrivers/synthe3_ng/__init__.py',
+                self.assertEqual({'manifest.ini', 'synthDrivers/synthe3_ng/__init__.py',
                     'synthDrivers/synthe3_ng/_worker.py', 'synthDrivers/synthe3_ng/_native.py',
                     'synthDrivers/synthe3_ng/bin/synthe3.dll', 'doc/fr/readme.html',
                     'doc/en/readme.html', 'licenses/LICENSE-GPL', 'licenses/LICENSE-LGPL',
-                    'source/src/engine.c', 'source/src/voice_data.h', 'source/Makefile',
-                    'source/tools/build_nvda_addon.py'}.issubset(names))
+                    'LICENSE.md', 'UPSTREAM.md'}, names)
                 self.assertFalse(any('__pycache__' in name or name.endswith('.pyc') for name in names))
                 self.assertEqual(archive.read('synthDrivers/synthe3_ng/bin/synthe3.dll'), dll.read_bytes())
                 self.assertFalse(any(name.startswith('/') or '..' in Path(name).parts for name in names))
         manifest = builder.manifest()
+        self.assertEqual(manifest['url'], 'https://github.com/pcressant/synthe3-ng')
         self.assertEqual(manifest['docFileName'], 'readme.html')
         self.assertEqual(manifest['minimumNVDAVersion'], '2026.2')
 
@@ -57,25 +55,3 @@ class PackageTests(unittest.TestCase):
         struct.pack_into('<H', data, 132, 0x14C)
         with self.assertRaises(ValueError):
             builder.validate_dll(data)
-
-    def test_sources_are_included_when_checkout_is_inside_a_build_directory(self):
-        with tempfile.TemporaryDirectory() as directory:
-            directory = Path(directory)
-            checkout = directory / 'build' / 'source'
-            checkout.mkdir(parents=True)
-            shutil.copytree(ROOT / 'nvda/addon', checkout / 'nvda/addon',
-                            ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
-            for name in ('LICENSE.md', 'UPSTREAM.md', 'Makefile'):
-                shutil.copyfile(ROOT / name, checkout / name)
-            (checkout / 'src').mkdir()
-            (checkout / 'src/engine.c').write_text('/* corresponding source */')
-            (checkout / 'upstream').mkdir()
-            for path in (ROOT / 'upstream').glob('LICENSE-*'):
-                shutil.copyfile(path, checkout / 'upstream' / path.name)
-            dll = directory / 'test.dll'
-            dll.write_bytes(pe_fixture())
-            with patch.object(builder, 'ROOT', checkout), patch.object(builder, 'ADDON', checkout / 'nvda/addon'):
-                result = builder.build(dll, directory / 'test.nvda-addon')
-            with zipfile.ZipFile(result) as archive:
-                self.assertIn('source/src/engine.c', archive.namelist())
-                self.assertIn('source/nvda/addon/synthDrivers/synthe3_ng/__init__.py', archive.namelist())

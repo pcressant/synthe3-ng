@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
-"""Build a deterministic NVDA add-on with its x64 DLL and corresponding source."""
+"""Build a deterministic NVDA add-on with its x64 DLL, user help and licenses."""
 import argparse
 import json
 from pathlib import Path
@@ -43,16 +43,6 @@ def build(dll, output):
         files[name] = (ROOT / name).read_bytes()
     for path in (ROOT / 'upstream').glob('LICENSE-*'):
         files['licenses/' + path.name] = path.read_bytes()
-    # Corresponding source, including build scripts, references and voice data.
-    for directory in ('src', 'tests', 'tools', 'nvda', 'config', 'nix', 'docs', 'upstream'):
-        for path in (ROOT / directory).rglob('*'):
-            if path.is_file() and not any(part in ('__pycache__', 'build') for part in path.relative_to(ROOT).parts) and path.suffix != '.pyc':
-                files['source/' + path.relative_to(ROOT).as_posix()] = path.read_bytes()
-    for name in ('Makefile', 'flake.nix', 'flake.lock', 'default.nix', 'windows.nix',
-                 'nvda.nix', 'README.md', 'LICENSE.md', 'UPSTREAM.md', 'evolution-windows.md'):
-        path = ROOT / name
-        if path.exists():
-            files['source/' + name] = path.read_bytes()
     for name, source in files.items():
         if name.endswith('.py'):
             compile(source, name, 'exec')

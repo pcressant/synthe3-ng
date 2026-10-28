@@ -1,12 +1,12 @@
 # Extension NVDA : Synthé3-ng, voix Michel
 
-La version 0.4.0 fournit un paquet `.nvda-addon` pour **NVDA 2026.2, processus
+La version 0.5.0 fournit un paquet `.nvda-addon` pour **NVDA 2026.2, processus
 Windows x64**. La voix reste française. Le moteur, le DSP et la préparation du
 texte sont partagés avec Linux ; le module Speech Dispatcher reste disponible.
 
 ## Installer et essayer
 
-Copier `synthe3-ng-0.4.0.nvda-addon` sur Windows, l’ouvrir pour l’installer,
+Copier `synthe3-ng-0.5.0.nvda-addon` sur Windows, l’ouvrir pour l’installer,
 puis redémarrer NVDA lorsque proposé. Dans les paramètres Parole, choisir le
 synthétiseur **Synthé3-ng — Michel (français)**. Le guide intégré est disponible
 dans le gestionnaire d’extensions, dans l’aide de Synthé3-ng.
@@ -34,7 +34,9 @@ ou une certification d’usage matériel.
 ## Architecture
 
 Le paquet contient un pilote Python dans `synthDrivers/synthe3_ng`, sa DLL C,
-la documentation française/anglaise, les licences et le code source correspondant.
+l’aide utilisateur française/anglaise et les licences. Le code source et la
+documentation de développement sont disponibles sur
+[GitHub](https://github.com/pcressant/synthe3-ng).
 Python est celui de NVDA ; aucun interpréteur, serveur, sous-processus ou fichier
 WAV supplémentaire n’est lancé pendant la parole.
 
@@ -93,7 +95,7 @@ La construction reproductible depuis Linux utilise le nixpkgs verrouillé :
 nix build path:.#nvda-addon --out-link build/nvda-result
 ```
 
-Le paquet est dans `build/nvda-result/synthe3-ng-0.4.0.nvda-addon`.
+Le paquet est dans `build/nvda-result/synthe3-ng-0.5.0.nvda-addon`.
 Pour produire séparément les exécutables Windows :
 
 ```sh
@@ -101,10 +103,11 @@ nix build path:.#windows-x64 --out-link build/windows-result
 python3 tools/build_nvda_addon.py --dll build/windows-result/bin/synthe3.dll
 ```
 
-Cette dernière commande écrit `build/synthe3-ng-0.4.0.nvda-addon`.
+Cette dernière commande écrit `build/synthe3-ng-0.5.0.nvda-addon`.
 Avec une chaîne MinGW configurée, `make windows` puis `make nvda-addon`
 produisent le même type de paquet. Le paquet ne contient ni cache Python,
-ni environnement de compilation ; ses sources sont incluses sous `source/`.
+ni environnement de compilation, ni copie des sources ou de la documentation de
+développement. Le manifeste et l’aide utilisateur renvoient vers le dépôt GitHub.
 
 ## Validation
 

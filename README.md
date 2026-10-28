@@ -7,8 +7,8 @@ Issu de [Synthé3 de Michel Morel, maintenu par Shérab (Sébastien Hinderer)](h
 
 ## NVDA — Windows x64
 
-La version 0.4.0 fournit une extension pour NVDA 2026.2. Ouvrir le fichier
-`synthe3-ng-0.4.0.nvda-addon` sur Windows, installer, redémarrer NVDA puis choisir
+La version 0.5.0 fournit une extension pour NVDA 2026.2. Ouvrir le fichier
+`synthe3-ng-0.5.0.nvda-addon` sur Windows, installer, redémarrer NVDA puis choisir
 **Synthé3-ng — Michel (français)** dans les paramètres Parole.
 Voir [le guide NVDA](docs/nvda.md) pour la construction et les essais.
 **Testé avec succès sur NVDA 26.3 (2026.3) sous Windows 11 26H2**, pendant
