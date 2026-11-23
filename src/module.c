@@ -72,6 +72,14 @@ static int render(const char *text, const S3Mark *mark, size_t bytes) {
     size_t n, count;
     if (stopped)
         return 1;
+    if (paused) {
+        /* After PAUSE libspeechd_module discards all audio: synthesising up to
+         * the next __spd_ mark only burns CPU, and delays 704 by the whole text
+         * on a loaded machine. Walk this chunk's marks without rendering. */
+        for (; mark && mark->offset <= bytes && !stopped; mark = mark->next)
+            report_mark(mark);
+        return poll_input();
+    }
     if (s3_render_modulated(text, rate_setting(current.rate), setting(current.pitch, S3_PITCH_BASE),
                             current.pitch_range, poll_input, &raw,
                   &n))
