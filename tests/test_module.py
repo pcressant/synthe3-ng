@@ -59,7 +59,10 @@ class Protocol:
         else:
             self.p.wait(timeout=5)
         self.reader.join(timeout=1)
-        self.p.stdin.close()
+        try:
+            self.p.stdin.close()
+        except BrokenPipeError:
+            pass  # the module exited with unflushed input
         self.p.stdout.close()
         self.p.stderr.close()
 
@@ -287,8 +290,13 @@ class StartupTests(unittest.TestCase):
             config.write_text('Renderer "/missing"\n')
             client = Protocol(config)
             try:
-                client.send('INIT\n')
-                client.p.wait(timeout=5)
+                # The configuration is read before INIT: the module may
+                # already have exited and closed its end of the pipe.
+                try:
+                    client.send('INIT\n')
+                except BrokenPipeError:
+                    pass
+                client.p.wait(timeout=30)
                 self.assertNotEqual(client.p.returncode, 0)
             finally:
                 client.close()
