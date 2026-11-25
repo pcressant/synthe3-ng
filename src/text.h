@@ -18,7 +18,7 @@ typedef struct {
     size_t n;
     int status;
     S3Mark *marks, *last_mark;
-    int punctuation, spelling;
+    int punctuation, spelling, spelling_started;
     void *context;
     int (*emit)(void *, const char *, const S3Mark *, size_t);
     int (*emit_mark)(void *, const S3Mark *);

@@ -110,7 +110,10 @@ class Worker:
             with self._cv:
                 if self._closing:
                     return
-            self.cancel()
+            try:
+                self.cancel()
+            except Exception:
+                self.error("Synthé3 cancellation during shutdown failed")
             with self._cv:
                 self._closing = True
                 self._cv.notify_all()
@@ -133,12 +136,10 @@ class Worker:
         finally:
             # cancel may stop the device just before an already reserved feed
             # enters native code. Purge again before this worker starts new work.
-            if not self.valid(job.generation):
-                self.player.stop()
-            else:
-                with self._cv:
-                    paused = self._paused
-                if paused:
+            with self._control:
+                if not self.valid(job.generation):
+                    self.player.stop()
+                elif self._paused:
                     self.player.pause(True)
         self._ready(job)
 

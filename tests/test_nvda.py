@@ -165,6 +165,30 @@ class NvdaTests(unittest.TestCase):
         self.done()
         self.assertEqual([i for _, i in self.notifications], [2, None])
 
+    def test_resume_overlapping_worker_pause_wins(self):
+        self.player.late_feed = True
+        self.worker.submit([('text', 'Bonjour.')], Settings())
+        self.assertTrue(self.player.feed_entered.wait(3))
+        self.worker.pause(True)
+        reapplying = threading.Event()
+        resumed = threading.Event()
+        pause = self.player.pause
+
+        def overlapping_pause(enabled):
+            if enabled:
+                reapplying.set()
+                resumed.wait(.2)
+            pause(enabled)
+            if not enabled:
+                resumed.set()
+
+        self.player.pause = overlapping_pause
+        self.player.allow_feed.set()
+        self.assertTrue(reapplying.wait(3))
+        self.worker.pause(False)
+        self.done()
+        self.assertFalse(self.player.paused)
+
     def test_empty_and_whitespace_indices_do_not_need_audio(self):
         self.worker.submit([('index', 1), ('text', '  '), ('index', 2)], Settings())
         self.done()
@@ -224,6 +248,21 @@ class NvdaTests(unittest.TestCase):
         self.assertFalse(self.worker.valid(0))
         native = Native(ROOT / 'build/libsynthe3.so')
         native.close()
+
+    def test_stop_error_still_closes_worker_and_native(self):
+        stop = self.player.stop
+
+        def fail_once():
+            self.player.stop = stop
+            raise OSError('audio device lost')
+
+        self.player.stop = fail_once
+        self.worker.error = self.errors.append
+        self.worker.terminate()
+        self.assertTrue(self.errors)
+        self.assertFalse(self.worker._thread.is_alive())
+        self.assertTrue(self.player.closed)
+        Native(ROOT / 'build/libsynthe3.so').close()
 
     def test_cancelled_token_is_not_reset_by_text_stream(self):
         request = self.native.request()

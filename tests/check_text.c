@@ -45,6 +45,18 @@ int main(void) {
     s3_text_clear(&c);
 
     s = (Sink){0}; c = prepare(&s);
+    c.spelling = 1;
+    assert(!s3_text_append(&c, "a"));
+    assert(!s3_text_mark(&c, "index"));
+    assert(!s3_text_append(&c, "b"));
+    assert(!s3_text_finish(&c));
+    assert(!strcmp(s.text, "a, b") && s.marks == 1 && s.positions[0] == 1);
+    assert(!s3_text_append(&c, "c"));
+    assert(!s3_text_finish(&c));
+    assert(!strcmp(s.text, "a, bc"));
+    s3_text_clear(&c);
+
+    s = (Sink){0}; c = prepare(&s);
     char prefix[241];
     memset(prefix, 'a', 200); prefix[200] = ' ';
     memset(prefix + 201, 'b', 39); prefix[240] = 0;

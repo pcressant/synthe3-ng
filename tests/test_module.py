@@ -167,6 +167,15 @@ class ModuleTests(unittest.TestCase):
         for _ in range(8):
             self.assertEqual(first, pcm_from(self.say('Bonjour, les oiseaux chantent.')))
 
+    def test_literal_less_than_survives_ssml_fallback(self):
+        self.client.send('SET\npunctuation_mode=all\n.\n')
+        self.client.until(b'203 ')
+        for raw, escaped in [('2 < 3 puis 4', '2 &lt; 3 puis 4'),
+                             ('<speak>2 < 3 et 4 > 1</speak>', '2 &lt; 3 et 4 &gt; 1'),
+                             ('avant <fin', 'avant &lt;fin')]:
+            with self.subTest(raw=raw):
+                self.assertEqual(pcm_from(self.say(raw)), pcm_from(self.say(escaped)))
+
     def test_numbers_with_symbol_preprocessor_spaces(self):
         # Speech Dispatcher SymbolsPreproc inserts a space before a retained
         # decimal comma. The engine must not ingest that comma as a digit.

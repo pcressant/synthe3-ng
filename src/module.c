@@ -333,16 +333,33 @@ void module_speak_sync(const char *data, size_t bytes, SPDMessageType type) {
                 status = -1;
             else {
                 size_t n = 0;
-                int tag = 0;
+                size_t tag_start = bytes;
+                char quote = 0;
                 for (size_t i = 0; i < bytes; i++) {
                     if (!(i & 4095) && poll_input())
                         break;
-                    if (data[i] == '<')
-                        tag = 1;
-                    else if (data[i] == '>' && tag)
-                        tag = 0;
-                    else if (!tag)
-                        plain[n++] = data[i];
+                    char ch = data[i];
+                    if (ch == '<') {
+                        size_t name = i + 1;
+                        if (name < bytes && data[name] == '/')
+                            name++;
+                        tag_start = name < bytes && (isalpha((unsigned char)data[name]) ||
+                                    data[name] == '_' || data[name] == ':' ||
+                                    data[name] == '!' || data[name] == '?') ? n : bytes;
+                        quote = 0;
+                    } else if (tag_start != bytes) {
+                        if (quote) {
+                            if (ch == quote)
+                                quote = 0;
+                        } else if (ch == '"' || ch == '\'')
+                            quote = ch;
+                        else if (ch == '>') {
+                            n = tag_start;
+                            tag_start = bytes;
+                            continue;
+                        }
+                    }
+                    plain[n++] = ch;
                 }
                 plain[n] = 0;
                 status = stopped ? 1 : text(plain);

@@ -145,7 +145,6 @@ static void literal(S3Text *c, const char *s) {
 int s3_text_append(S3Text *chunk, const char *s) {
     S3Text *c = chunk;
     const unsigned char *p = (const unsigned char *)s;
-    int first = 1;
     unsigned checkpoint = 0;
     while (*p && !c->status) {
         if (!(checkpoint++ & 1023) && (c->stop && c->stop(c->context))) {
@@ -155,8 +154,9 @@ int s3_text_append(S3Text *chunk, const char *s) {
         unsigned code = s3_text_decode(&p);
         const char *name = s3_punct_name(code);
         if (c->spelling) {
-            if (!first)
+            if (c->spelling_started)
                 literal(c, ", ");
+            c->spelling_started = 1;
             if (name)
                 literal(c, name);
             else if (code <= 255 && isspace((unsigned char)code))
@@ -170,7 +170,6 @@ int s3_text_append(S3Text *chunk, const char *s) {
             byte(c, ' ');
         } else
             normalized(c, code);
-        first = 0;
     }
     return c->status;
 }
@@ -198,5 +197,6 @@ int s3_text_mark(S3Text *c, const char *name) {
 }
 int s3_text_finish(S3Text *c) {
     flush(c, c->n);
+    c->spelling_started = 0;
     return c->status;
 }
